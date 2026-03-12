@@ -18,6 +18,12 @@ interface Props {
 const usSizes = Array.from({ length: 25 }, (_, i) => String(4 + i * 0.5));
 const euSizes = Array.from({ length: 16 }, (_, i) => String(35 + i));
 
+const widthInfo: Record<FootWidth, string> = {
+  narrow: "Slim profile",
+  medium: "Standard fit",
+  wide: "Broad profile",
+};
+
 export default function ShoeSize({
   sizeSystem,
   shoeSize,
@@ -30,14 +36,14 @@ export default function ShoeSize({
   const canProceed = shoeSize !== "";
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-1">Your Shoe Size</h2>
-      <p className="text-stone-500 text-sm mb-6">
+    <div className="animate-fade-in-up">
+      <h2 className="text-lg font-bold text-slate-800 mb-1">Your Shoe Size</h2>
+      <p className="text-slate-500 text-sm mb-5">
         Enter your regular (non-climbing) shoe size.
       </p>
 
       <div className="mb-5">
-        <label className="block text-sm font-medium text-stone-700 mb-2">
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
           Size System
         </label>
         <div className="flex gap-2">
@@ -45,10 +51,10 @@ export default function ShoeSize({
             <button
               key={sys}
               onClick={() => onChange({ sizeSystem: sys, shoeSize: "", footWidth })}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 sizeSystem === sys
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white border border-stone-300 text-stone-600 hover:border-indigo-400"
+                  ? "bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-md shadow-brand-200/50"
+                  : "bg-slate-50 border border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-600"
               }`}
             >
               {sys}
@@ -58,7 +64,7 @@ export default function ShoeSize({
       </div>
 
       <div className="mb-5">
-        <label className="block text-sm font-medium text-stone-700 mb-2">
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
           Size
         </label>
         <select
@@ -66,9 +72,9 @@ export default function ShoeSize({
           onChange={(e) =>
             onChange({ sizeSystem, shoeSize: e.target.value, footWidth })
           }
-          className="w-full border border-stone-300 rounded-lg px-4 py-2.5 bg-white text-stone-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all text-sm"
         >
-          <option value="">Select size</option>
+          <option value="">Select your size</option>
           {sizes.map((s) => (
             <option key={s} value={s}>
               {sizeSystem} {s}
@@ -78,7 +84,7 @@ export default function ShoeSize({
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-stone-700 mb-2">
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
           Foot Width
         </label>
         <div className="flex gap-2">
@@ -86,13 +92,16 @@ export default function ShoeSize({
             <button
               key={w}
               onClick={() => onChange({ sizeSystem, shoeSize, footWidth: w })}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all duration-200 ${
                 footWidth === w
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white border border-stone-300 text-stone-600 hover:border-indigo-400"
+                  ? "bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-md shadow-brand-200/50"
+                  : "bg-slate-50 border border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-600"
               }`}
             >
-              {w}
+              <span className="block">{w}</span>
+              <span className={`block text-[10px] font-normal mt-0.5 ${footWidth === w ? "text-brand-200" : "text-slate-400"}`}>
+                {widthInfo[w]}
+              </span>
             </button>
           ))}
         </div>
@@ -101,16 +110,16 @@ export default function ShoeSize({
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 rounded-xl font-semibold border border-stone-300 text-stone-600 hover:bg-stone-100 transition-colors"
+          className="flex-1 py-3 rounded-xl font-semibold border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
         >
           Back
         </button>
         <button
           disabled={!canProceed}
           onClick={onNext}
-          className="flex-1 py-3 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-stone-300 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-md shadow-brand-200/50 disabled:shadow-none"
         >
-          Next
+          Continue
         </button>
       </div>
     </div>

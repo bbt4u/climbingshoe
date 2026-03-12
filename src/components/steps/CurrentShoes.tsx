@@ -35,27 +35,27 @@ export default function CurrentShoes({
   const canProceed = selected.length > 0;
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-1">Current Climbing Shoes</h2>
-      <p className="text-stone-500 text-sm mb-4">
+    <div className="animate-fade-in-up">
+      <h2 className="text-lg font-bold text-slate-800 mb-1">Current Climbing Shoes</h2>
+      <p className="text-slate-500 text-sm mb-4">
         Select any climbing shoes you currently own or have used.
       </p>
 
       <button
         onClick={() => toggle("none")}
-        className={`w-full mb-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+        className={`w-full mb-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
           hasNone
-            ? "bg-indigo-600 text-white"
-            : "bg-white border border-stone-300 text-stone-600 hover:border-indigo-400"
+            ? "bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-md shadow-brand-200/50"
+            : "bg-slate-50 border-2 border-dashed border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-600"
         }`}
       >
         I don&apos;t have climbing shoes yet
       </button>
 
-      <div className="max-h-[300px] overflow-y-auto space-y-4 mb-6">
+      <div className="max-h-[280px] overflow-y-auto space-y-4 mb-6 pr-1">
         {brands.map((brand) => (
           <div key={brand}>
-            <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1.5">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
               {brand}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -66,10 +66,10 @@ export default function CurrentShoes({
                     key={shoe.id}
                     onClick={() => toggle(shoe.id)}
                     disabled={hasNone}
-                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       selected.includes(shoe.id)
-                        ? "bg-indigo-600 text-white"
-                        : "bg-white border border-stone-300 text-stone-600 hover:border-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                        ? "bg-brand-600 text-white shadow-sm"
+                        : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 disabled:opacity-30 disabled:cursor-not-allowed"
                     }`}
                   >
                     {shoe.name}
@@ -83,16 +83,16 @@ export default function CurrentShoes({
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 py-3 rounded-xl font-semibold border border-stone-300 text-stone-600 hover:bg-stone-100 transition-colors"
+          className="flex-1 py-3 rounded-xl font-semibold border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
         >
           Back
         </button>
         <button
           disabled={!canProceed}
           onClick={onNext}
-          className="flex-1 py-3 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-stone-300 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-md shadow-brand-200/50 disabled:shadow-none"
         >
-          Next
+          Continue
         </button>
       </div>
     </div>

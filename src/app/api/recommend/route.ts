@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { shoes } from "@/data/shoes";
-import type { FormData, RecommendResponse, Recommendation } from "@/lib/types";
+import type { FormData, RecommendResponse, Recommendation, FootShape } from "@/lib/types";
 
 export const maxDuration = 60;
 
@@ -18,7 +18,6 @@ export async function POST(request: Request) {
 
     const anthropic = new Anthropic();
 
-    // Strip data URL prefix to get raw base64
     const frontBase64 = body.photos.front.replace(
       /^data:image\/\w+;base64,/,
       ""
@@ -46,6 +45,7 @@ export async function POST(request: Request) {
         aggressiveness: s.aggressiveness,
         bestFor: s.bestFor,
         fitProfile: s.fitProfile,
+        idealFootShapes: s.idealFootShapes,
         keyFeatures: s.keyFeatures,
         description: s.description,
       })),
@@ -53,7 +53,38 @@ export async function POST(request: Request) {
       2
     );
 
-    const prompt = `You are an expert climbing shoe fitter with years of experience in a bouldering gear shop. Analyze the two foot photos provided (front view and side view) along with the climber's profile to recommend the 3 best bouldering shoes.
+    const prompt = `You are an expert climbing shoe fitter with years of experience in a bouldering gear shop. Analyze the two foot photos provided (front view and side view) and follow the decision tree below to recommend the 3 best bouldering shoes.
+
+STEP 1 — CLASSIFY FOOT SHAPE
+Look at the front view photo and classify the foot into one of 5 types based on toe pattern:
+
+- **Egyptian**: Big toe is the longest, each subsequent toe is shorter in a diagonal line. Tapered shape. Most common type (~70% of people).
+- **Roman**: First three toes (big toe, second, third) are roughly the same length, creating a squared-off front. Wider forefoot.
+- **Greek**: Second toe extends beyond the big toe. Creates a pointed/triangular toe profile.
+- **German**: Big toe is the longest, remaining four toes are roughly the same shorter length. Wide forefoot with a step-down after big toe.
+- **Celtic**: Second toe is longest (like Greek), but third toe is nearly as tall, with big toe shorter. Irregular/uneven profile.
+
+STEP 2 — ASSESS ADDITIONAL FOOT FEATURES
+From both photos, also assess:
+- Arch height (low / medium / high) from the side view
+- Foot volume (low / medium / high)
+- Any asymmetry or notable features
+
+STEP 3 — DECISION TREE FOR SHOE SELECTION
+Use this logic to filter and rank shoes:
+
+1. Start with shoes whose "idealFootShapes" includes the detected foot shape.
+2. Filter by experience level — only include shoes whose "bestFor" includes the climber's level.
+3. Factor in foot width:
+   - Narrow feet → prefer "narrow" or "medium" fitProfile shoes
+   - Medium feet → prefer "medium" fitProfile shoes
+   - Wide feet → prefer "wide" or "high-volume" fitProfile shoes
+4. Factor in arch height:
+   - High arch → aggressive shoes with downturn wrap the foot better
+   - Low arch → flat or moderate shoes are more comfortable
+   - Medium arch → any aggressiveness level works
+5. If they have current shoes, recommend something different that addresses gaps (e.g., if they have a flat beginner shoe, suggest an upgrade).
+6. Rank the final candidates by how many criteria they match perfectly.
 
 CLIMBER PROFILE:
 - Shoe size: ${body.sizeSystem} ${body.shoeSize}
@@ -64,19 +95,14 @@ CLIMBER PROFILE:
 SHOE DATABASE:
 ${shoeDb}
 
-INSTRUCTIONS:
-1. Analyze the foot photos for: arch height, toe profile shape (Egyptian/Greek/Roman), width, volume, and any notable features.
-2. Consider the climber's experience level to balance comfort vs performance.
-3. If they have current shoes, suggest something that complements or improves on what they have.
-4. Select exactly 3 shoes from the database above. Pick shoes that best match their foot shape, width, and experience level.
-
 Return your response as JSON only (no markdown, no code blocks), in this exact format:
 {
-  "footAnalysis": "A 2-3 sentence summary of the foot shape analysis from the photos.",
+  "footShape": "egyptian" | "roman" | "greek" | "german" | "celtic",
+  "footAnalysis": "2-3 sentences: state the detected foot shape, arch height, volume, and how these characteristics influence shoe choice.",
   "recommendations": [
     {
       "shoeId": "the shoe id from the database",
-      "reasoning": "2-3 sentences explaining why this shoe is a great match for this specific person."
+      "reasoning": "2-3 sentences explaining why this shoe is ideal for their specific foot shape and profile. Reference the foot shape by name."
     },
     {
       "shoeId": "...",
@@ -126,7 +152,6 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
       throw new Error("No text response from AI");
     }
 
-    // Extract JSON — try raw parse first, then regex for code blocks
     let parsed;
     try {
       parsed = JSON.parse(textBlock.text);
@@ -136,7 +161,11 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
       parsed = JSON.parse(match[0]);
     }
 
-    // Map shoe IDs back to full shoe objects
+    const validShapes: FootShape[] = ["egyptian", "roman", "greek", "german", "celtic"];
+    const footShape: FootShape = validShapes.includes(parsed.footShape)
+      ? parsed.footShape
+      : "egyptian";
+
     const recommendations: Recommendation[] = parsed.recommendations.map(
       (rec: { shoeId: string; reasoning: string }) => {
         const shoe = shoes.find((s) => s.id === rec.shoeId);
@@ -147,6 +176,7 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
 
     const result: RecommendResponse = {
       footAnalysis: parsed.footAnalysis,
+      footShape,
       recommendations,
     };
 

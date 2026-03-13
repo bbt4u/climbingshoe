@@ -9,6 +9,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "aggressive",
     bestFor: ["intermediate", "advanced", "expert"],
     fitProfile: "medium",
+    idealFootShapes: ["egyptian", "celtic"],
     keyFeatures: [
       "P3 permanent power platform",
       "Vibram XS Grip2 rubber",
@@ -26,6 +27,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "moderate",
     bestFor: ["intermediate", "advanced", "expert"],
     fitProfile: "narrow",
+    idealFootShapes: ["egyptian", "greek"],
     keyFeatures: [
       "Vibram XS Edge rubber",
       "Lace-up precision fit",
@@ -43,6 +45,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "aggressive",
     bestFor: ["intermediate", "advanced", "expert"],
     fitProfile: "medium",
+    idealFootShapes: ["greek", "celtic", "egyptian"],
     keyFeatures: [
       "S-Heel construction for heel hooks",
       "Split sole for sensitivity",
@@ -60,6 +63,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "flat",
     bestFor: ["beginner"],
     fitProfile: "wide",
+    idealFootShapes: ["roman", "german", "celtic"],
     keyFeatures: [
       "FriXion RS rubber",
       "Unlined upper for comfort",
@@ -77,6 +81,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "aggressive",
     bestFor: ["intermediate", "advanced", "expert"],
     fitProfile: "medium",
+    idealFootShapes: ["egyptian", "roman", "german"],
     keyFeatures: [
       "Vibram XS Edge rubber",
       "Bi-Tension active randing",
@@ -94,6 +99,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "aggressive",
     bestFor: ["advanced", "expert"],
     fitProfile: "narrow",
+    idealFootShapes: ["egyptian", "greek"],
     keyFeatures: [
       "Vibram XS Grip2 rubber (1.6mm)",
       "Ultra-thin sole for sensitivity",
@@ -111,6 +117,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "moderate",
     bestFor: ["intermediate", "advanced"],
     fitProfile: "medium",
+    idealFootShapes: ["roman", "german", "celtic"],
     keyFeatures: [
       "Vibram XS Edge rubber",
       "Bi-Tension randing",
@@ -128,6 +135,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "flat",
     bestFor: ["beginner"],
     fitProfile: "high-volume",
+    idealFootShapes: ["roman", "german", "celtic"],
     keyFeatures: [
       "Vision rubber",
       "Padded tongue and collar",
@@ -145,6 +153,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "aggressive",
     bestFor: ["intermediate", "advanced", "expert"],
     fitProfile: "narrow",
+    idealFootShapes: ["egyptian", "greek"],
     keyFeatures: [
       "Stealth C4 rubber",
       "Downturned profile",
@@ -162,6 +171,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "moderate",
     bestFor: ["intermediate", "advanced"],
     fitProfile: "medium",
+    idealFootShapes: ["egyptian", "celtic", "greek"],
     keyFeatures: [
       "Stealth C4 rubber",
       "Microfiber upper",
@@ -179,6 +189,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "flat",
     bestFor: ["beginner", "intermediate"],
     fitProfile: "wide",
+    idealFootShapes: ["roman", "german", "celtic"],
     keyFeatures: [
       "Stealth C4 rubber",
       "Slip-on design",
@@ -196,6 +207,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "aggressive",
     bestFor: ["intermediate", "advanced", "expert"],
     fitProfile: "wide",
+    idealFootShapes: ["roman", "german", "celtic"],
     keyFeatures: [
       "TRAX XT-5 rubber",
       "Love Bump technology",
@@ -213,6 +225,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "aggressive",
     bestFor: ["advanced", "expert"],
     fitProfile: "medium",
+    idealFootShapes: ["egyptian", "greek"],
     keyFeatures: [
       "TRAX XT-5 high friction rubber",
       "Minimal material for sensitivity",
@@ -230,6 +243,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "flat",
     bestFor: ["beginner"],
     fitProfile: "wide",
+    idealFootShapes: ["roman", "german", "celtic"],
     keyFeatures: [
       "TRAX rubber",
       "Synthratek upper",
@@ -247,6 +261,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "aggressive",
     bestFor: ["intermediate", "advanced"],
     fitProfile: "wide",
+    idealFootShapes: ["roman", "german", "celtic"],
     keyFeatures: [
       "Neo Fuse rubber",
       "Available in wide and narrow",
@@ -264,6 +279,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "flat",
     bestFor: ["beginner", "intermediate"],
     fitProfile: "medium",
+    idealFootShapes: ["egyptian", "roman", "celtic"],
     keyFeatures: [
       "Neo Fuse rubber",
       "Open-fit design",
@@ -281,6 +297,7 @@ export const shoes: Shoe[] = [
     aggressiveness: "moderate",
     bestFor: ["intermediate", "advanced"],
     fitProfile: "medium",
+    idealFootShapes: ["egyptian", "greek", "celtic"],
     keyFeatures: [
       "Science Friction 3.0 rubber",
       "Concave sole",

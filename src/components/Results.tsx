@@ -1,6 +1,6 @@
 "use client";
 
-import { RecommendResponse } from "@/lib/types";
+import { RecommendResponse, FootShape } from "@/lib/types";
 
 interface Props {
   data: RecommendResponse;
@@ -19,7 +19,62 @@ const rankColors = [
   "from-amber-600 to-amber-700",
 ];
 
+const footShapeInfo: Record<FootShape, { label: string; desc: string }> = {
+  egyptian: {
+    label: "Egyptian",
+    desc: "Big toe longest, tapering diagonal line. Best with asymmetric shoes that follow the natural taper.",
+  },
+  roman: {
+    label: "Roman",
+    desc: "First three toes similar length, squared front. Best with wider toe box shoes that don't compress toes.",
+  },
+  greek: {
+    label: "Greek",
+    desc: "Second toe extends past big toe. Best with shoes that have extra room in the toe box peak.",
+  },
+  german: {
+    label: "German",
+    desc: "Big toe longest, other four similar length. Best with shoes offering a roomy, square-shaped toe box.",
+  },
+  celtic: {
+    label: "Celtic",
+    desc: "Second toe longest with uneven profile. Best with flexible shoes that adapt to irregular toe lengths.",
+  },
+};
+
+function FootShapeIcon({ shape }: { shape: FootShape }) {
+  const toeHeights: Record<FootShape, number[]> = {
+    egyptian: [44, 38, 32, 26, 20],
+    roman: [40, 40, 40, 30, 22],
+    greek: [36, 44, 34, 26, 20],
+    german: [44, 32, 32, 32, 32],
+    celtic: [34, 44, 40, 28, 22],
+  };
+  const heights = toeHeights[shape];
+  const toeX = [18, 32, 46, 58, 68];
+  const toeW = [10, 9, 8, 7, 6];
+
+  return (
+    <svg viewBox="0 0 86 56" className="w-16 h-10">
+      {heights.map((h, i) => (
+        <rect
+          key={i}
+          x={toeX[i]}
+          y={56 - h}
+          width={toeW[i]}
+          height={h}
+          rx={toeW[i] / 2}
+          fill="currentColor"
+          opacity={0.7 + i * 0.05}
+        />
+      ))}
+    </svg>
+  );
+}
+
 export default function Results({ data, onReset }: Props) {
+  const shapeInfo = footShapeInfo[data.footShape];
+
   return (
     <div className="animate-fade-in-up">
       <div className="text-center mb-5">
@@ -27,18 +82,31 @@ export default function Results({ data, onReset }: Props) {
         <p className="text-slate-500 text-xs mt-0.5">Personalized for your feet</p>
       </div>
 
-      <div className="bg-gradient-to-br from-brand-50 to-brand-100/50 border border-brand-200/60 rounded-xl p-4 mb-5">
+      {/* Foot Shape Card */}
+      <div className="bg-gradient-to-br from-brand-50 to-brand-100/50 border border-brand-200/60 rounded-xl p-4 mb-3">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-14 h-14 rounded-xl bg-white/80 border border-brand-200/50 flex items-center justify-center text-brand-500">
+            <FootShapeIcon shape={data.footShape} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-brand-400 uppercase tracking-wider">Your Foot Type</p>
+            <p className="text-lg font-bold text-brand-700">{shapeInfo.label} Foot</p>
+          </div>
+        </div>
+        <p className="text-xs text-brand-600 leading-relaxed">{shapeInfo.desc}</p>
+      </div>
+
+      {/* AI Analysis */}
+      <div className="bg-white border border-slate-100 rounded-xl p-4 mb-5">
         <div className="flex items-start gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-brand-200 flex items-center justify-center shrink-0 mt-0.5">
-            <svg className="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center shrink-0 mt-0.5">
+            <svg className="w-3.5 h-3.5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
           </div>
           <div>
-            <p className="text-xs font-bold text-brand-700 uppercase tracking-wider mb-1">
-              Foot Analysis
-            </p>
-            <p className="text-sm text-brand-900 leading-relaxed">{data.footAnalysis}</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">AI Analysis</p>
+            <p className="text-sm text-slate-600 leading-relaxed">{data.footAnalysis}</p>
           </div>
         </div>
       </div>
@@ -65,7 +133,7 @@ export default function Results({ data, onReset }: Props) {
                     {rec.shoe.priceRange}
                   </span>
                 </div>
-                <div className="flex gap-1.5 mb-3">
+                <div className="flex gap-1.5 mb-3 flex-wrap">
                   <span
                     className={`text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize border ${
                       aggressivenessStyle[rec.shoe.aggressiveness]
@@ -76,6 +144,11 @@ export default function Results({ data, onReset }: Props) {
                   <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-slate-50 text-slate-500 border border-slate-200 capitalize">
                     {rec.shoe.fitProfile} fit
                   </span>
+                  {rec.shoe.idealFootShapes.includes(data.footShape) && (
+                    <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-green-50 text-green-600 border border-green-200">
+                      {shapeInfo.label} foot match
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-slate-600 leading-relaxed mb-3">{rec.reasoning}</p>
                 <div className="flex flex-wrap gap-1.5">

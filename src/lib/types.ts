@@ -3,6 +3,7 @@ export type FootWidth = "narrow" | "medium" | "wide";
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced" | "expert";
 export type Aggressiveness = "flat" | "moderate" | "aggressive";
 export type FitProfile = "narrow" | "medium" | "wide" | "high-volume";
+export type FootShape = "egyptian" | "roman" | "greek" | "german" | "celtic";
 
 export interface Shoe {
   id: string;
@@ -12,6 +13,7 @@ export interface Shoe {
   aggressiveness: Aggressiveness;
   bestFor: ExperienceLevel[];
   fitProfile: FitProfile;
+  idealFootShapes: FootShape[];
   keyFeatures: string[];
   description: string;
 }
@@ -34,4 +36,5 @@ export interface Recommendation {
 export interface RecommendResponse {
   recommendations: Recommendation[];
   footAnalysis: string;
+  footShape: FootShape;
 }

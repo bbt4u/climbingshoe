@@ -9,9 +9,9 @@ export async function POST(request: Request) {
   try {
     const body: FormData = await request.json();
 
-    if (!body.photos?.front || !body.photos?.side) {
+    if (!body.photos?.front) {
       return NextResponse.json(
-        { error: "Both front and side photos are required" },
+        { error: "A photo of your feet is required" },
         { status: 400 }
       );
     }
@@ -19,10 +19,6 @@ export async function POST(request: Request) {
     const anthropic = new Anthropic();
 
     const frontBase64 = body.photos.front.replace(
-      /^data:image\/\w+;base64,/,
-      ""
-    );
-    const sideBase64 = body.photos.side.replace(
       /^data:image\/\w+;base64,/,
       ""
     );
@@ -53,10 +49,10 @@ export async function POST(request: Request) {
       2
     );
 
-    const prompt = `You are an expert climbing shoe fitter with years of experience in a bouldering gear shop. Analyze the two foot photos provided (front view and side view) and follow the decision tree below to recommend the 3 best bouldering shoes.
+    const prompt = `You are an expert climbing shoe fitter with years of experience in a bouldering gear shop. Analyze the photo of both feet (top-down front view) and follow the decision tree below to recommend the 3 best bouldering shoes.
 
 STEP 1 — CLASSIFY FOOT SHAPE
-Look at the front view photo and classify the foot into one of 5 types based on toe pattern:
+Look at the photo and classify the foot into one of 5 types based on toe pattern:
 
 - **Egyptian**: Big toe is the longest, each subsequent toe is shorter in a diagonal line. Tapered shape. Most common type (~70% of people).
 - **Roman**: First three toes (big toe, second, third) are roughly the same length, creating a squared-off front. Wider forefoot.
@@ -65,10 +61,10 @@ Look at the front view photo and classify the foot into one of 5 types based on 
 - **Celtic**: Second toe is longest (like Greek), but third toe is nearly as tall, with big toe shorter. Irregular/uneven profile.
 
 STEP 2 — ASSESS ADDITIONAL FOOT FEATURES
-From both photos, also assess:
-- Arch height (low / medium / high) from the side view
-- Foot volume (low / medium / high)
-- Any asymmetry or notable features
+From the photo, also assess:
+- Estimated foot width and volume
+- Any asymmetry between left and right feet
+- Any notable features (bunions, high instep, etc.)
 
 STEP 3 — DECISION TREE FOR SHOE SELECTION
 Use this logic to filter and rank shoes:
@@ -128,14 +124,6 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
                 type: "base64",
                 media_type: "image/jpeg",
                 data: frontBase64,
-              },
-            },
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: "image/jpeg",
-                data: sideBase64,
               },
             },
             {

@@ -151,6 +151,19 @@ export default function Results({ data, onReset }: Props) {
                   )}
                 </div>
                 <p className="text-sm text-slate-600 leading-relaxed mb-3">{rec.reasoning}</p>
+                {rec.recommendedSize && (
+                  <div className="flex items-center gap-2 mb-3 p-2.5 bg-blue-50 border border-blue-100 rounded-lg">
+                    <svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <div>
+                      <span className="text-xs font-bold text-blue-700">Recommended: EU {rec.recommendedSize}</span>
+                      {rec.sizingNote && (
+                        <p className="text-[11px] text-blue-500 mt-0.5">{rec.sizingNote}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-1.5">
                   {rec.shoe.keyFeatures.map((f) => (
                     <span

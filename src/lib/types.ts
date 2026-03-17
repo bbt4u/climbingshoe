@@ -31,6 +31,8 @@ export interface Recommendation {
   shoeId: string;
   shoe: Shoe;
   reasoning: string;
+  recommendedSize: string;
+  sizingNote: string;
 }
 
 export interface RecommendResponse {

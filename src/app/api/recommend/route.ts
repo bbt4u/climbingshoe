@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { shoes } from "@/data/shoes";
+import { brandSizing } from "@/data/sizing";
 import type { FormData, RecommendResponse, Recommendation, FootShape } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -82,6 +83,13 @@ Use this logic to filter and rank shoes:
 5. If they have current shoes, recommend something different that addresses gaps (e.g., if they have a flat beginner shoe, suggest an upgrade).
 6. Rank the final candidates by how many criteria they match perfectly.
 
+STEP 4 — SIZING RECOMMENDATIONS
+For each recommended shoe, factor in brand-specific sizing. Here is how each brand fits:
+
+${brandSizing.map((b) => `- **${b.brand}**: ${b.fitTendency}. Performance downsize: ${b.performanceDownsize} EU sizes. Comfort downsize: ${b.comfortDownsize} EU sizes. ${b.notes}`).join("\n")}
+
+Include a recommended climbing shoe size (EU) for each recommendation based on the climber's street shoe size, the brand's sizing tendency, and the experience level. Beginners should size for comfort, experts for performance.
+
 CLIMBER PROFILE:
 - Shoe size: ${body.sizeSystem} ${body.shoeSize}
 - Foot width: ${body.footWidth}
@@ -98,14 +106,20 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
   "recommendations": [
     {
       "shoeId": "the shoe id from the database",
+      "recommendedSize": "EU size as a number (e.g. 41.5)",
+      "sizingNote": "Brief note about sizing for this specific shoe (e.g. 'Size up 0.5 from street — La Sportiva runs small')",
       "reasoning": "2-3 sentences explaining why this shoe is ideal for their specific foot shape and profile. Reference the foot shape by name."
     },
     {
       "shoeId": "...",
+      "recommendedSize": "...",
+      "sizingNote": "...",
       "reasoning": "..."
     },
     {
       "shoeId": "...",
+      "recommendedSize": "...",
+      "sizingNote": "...",
       "reasoning": "..."
     }
   ]
@@ -155,10 +169,16 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
       : "egyptian";
 
     const recommendations: Recommendation[] = parsed.recommendations.map(
-      (rec: { shoeId: string; reasoning: string }) => {
+      (rec: { shoeId: string; reasoning: string; recommendedSize?: string; sizingNote?: string }) => {
         const shoe = shoes.find((s) => s.id === rec.shoeId);
         if (!shoe) throw new Error(`Unknown shoe ID: ${rec.shoeId}`);
-        return { shoeId: rec.shoeId, shoe, reasoning: rec.reasoning };
+        return {
+          shoeId: rec.shoeId,
+          shoe,
+          reasoning: rec.reasoning,
+          recommendedSize: rec.recommendedSize || "",
+          sizingNote: rec.sizingNote || "",
+        };
       }
     );
 

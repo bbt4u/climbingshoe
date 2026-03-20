@@ -1,6 +1,7 @@
 "use client";
 
 import { SizeSystem, SizeType, FootWidth } from "@/lib/types";
+import { sizeOptions, sizeLabels, widthInfo } from "@/data/sizeOptions";
 
 interface Props {
   sizeSystem: SizeSystem;
@@ -17,32 +18,6 @@ interface Props {
   onBack: () => void;
 }
 
-const usSizes = Array.from({ length: 25 }, (_, i) => String(4 + i * 0.5));
-const euSizes = Array.from({ length: 16 }, (_, i) => String(35 + i));
-const ukSizes = Array.from({ length: 25 }, (_, i) => String(3 + i * 0.5));
-// Korean sizes are in mm (footlength)
-const krSizes = Array.from({ length: 21 }, (_, i) => String(220 + i * 5));
-
-const sizeOptions: Record<SizeSystem, string[]> = {
-  US: usSizes,
-  EU: euSizes,
-  UK: ukSizes,
-  KR: krSizes,
-};
-
-const sizeLabels: Record<SizeSystem, string> = {
-  US: "US",
-  EU: "EU",
-  UK: "UK",
-  KR: "KR (mm)",
-};
-
-const widthInfo: Record<FootWidth, string> = {
-  narrow: "Slim profile",
-  medium: "Standard fit",
-  wide: "Broad profile",
-};
-
 export default function ShoeSize({
   sizeSystem,
   sizeType,
@@ -53,7 +28,6 @@ export default function ShoeSize({
   onBack,
 }: Props) {
   const sizes = sizeOptions[sizeSystem];
-  const canProceed = shoeSize !== "";
 
   return (
     <div className="animate-fade-in-up">
@@ -64,9 +38,7 @@ export default function ShoeSize({
 
       {/* Size Type Toggle */}
       <div className="mb-5">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          Size Type
-        </label>
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Size Type</label>
         <div className="flex gap-2">
           {(["street", "climbing"] as SizeType[]).map((t) => (
             <button
@@ -89,9 +61,7 @@ export default function ShoeSize({
 
       {/* Size System */}
       <div className="mb-5">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          Size System
-        </label>
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Size System</label>
         <div className="flex gap-2">
           {(["US", "EU", "UK", "KR"] as SizeSystem[]).map((sys) => (
             <button
@@ -111,40 +81,28 @@ export default function ShoeSize({
 
       {/* Size Dropdown */}
       <div className="mb-5">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          Size
-        </label>
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Size</label>
         <select
           value={shoeSize}
-          onChange={(e) =>
-            onChange({ sizeSystem, sizeType, shoeSize: e.target.value, footWidth })
-          }
+          onChange={(e) => onChange({ sizeSystem, sizeType, shoeSize: e.target.value, footWidth })}
           className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all text-sm"
         >
           <option value="">Select your size</option>
           {sizes.map((s) => (
-            <option key={s} value={s}>
-              {sizeLabels[sizeSystem]} {s}
-            </option>
+            <option key={s} value={s}>{sizeLabels[sizeSystem]} {s}</option>
           ))}
         </select>
         {sizeType === "climbing" && (
-          <p className="text-[11px] text-amber-600 mt-1.5">
-            We&apos;ll use your climbing shoe size as reference — sizing recommendations will adjust accordingly.
-          </p>
+          <p className="text-[11px] text-amber-600 mt-1.5">We&apos;ll use your climbing shoe size as reference — sizing recommendations will adjust accordingly.</p>
         )}
         {sizeSystem === "KR" && (
-          <p className="text-[11px] text-slate-400 mt-1.5">
-            Korean sizes are in millimeters (foot length). e.g., 260mm = EU 41
-          </p>
+          <p className="text-[11px] text-slate-400 mt-1.5">Korean sizes are in millimeters (foot length). e.g., 260mm = EU 41</p>
         )}
       </div>
 
       {/* Foot Width */}
       <div className="mb-6">
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-          Foot Width
-        </label>
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Foot Width</label>
         <div className="flex gap-2">
           {(["narrow", "medium", "wide"] as FootWidth[]).map((w) => (
             <button
@@ -157,23 +115,16 @@ export default function ShoeSize({
               }`}
             >
               <span className="block">{w}</span>
-              <span className={`block text-[10px] font-normal mt-0.5 ${footWidth === w ? "text-brand-200" : "text-slate-400"}`}>
-                {widthInfo[w]}
-              </span>
+              <span className={`block text-[10px] font-normal mt-0.5 ${footWidth === w ? "text-brand-200" : "text-slate-400"}`}>{widthInfo[w]}</span>
             </button>
           ))}
         </div>
       </div>
 
       <div className="flex gap-3">
+        <button onClick={onBack} className="flex-1 py-3 rounded-xl font-semibold border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all">Back</button>
         <button
-          onClick={onBack}
-          className="flex-1 py-3 rounded-xl font-semibold border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
-        >
-          Back
-        </button>
-        <button
-          disabled={!canProceed}
+          disabled={!shoeSize}
           onClick={onNext}
           className="flex-1 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-md shadow-brand-200/50 disabled:shadow-none"
         >

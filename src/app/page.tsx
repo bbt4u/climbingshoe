@@ -7,6 +7,7 @@ import ShoeSize from "@/components/steps/ShoeSize";
 import CurrentShoes from "@/components/steps/CurrentShoes";
 import Experience from "@/components/steps/Experience";
 import Results from "@/components/Results";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import type {
   FormData,
   RecommendResponse,
@@ -65,7 +66,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-6 sm:py-12">
-      {/* Header */}
       <div className="text-center mb-8 sm:mb-10 animate-fade-in-up">
         <div className="inline-flex items-center gap-2 bg-brand-100 text-brand-700 text-xs font-semibold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
           AI-Powered
@@ -78,7 +78,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Card */}
       <div className="w-full max-w-xl">
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-brand-100/50 border border-white/60 p-6 sm:p-8 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
           {typeof step === "number" && <StepIndicator current={step} />}
@@ -93,11 +92,7 @@ export default function Home() {
           )}
 
           {step === 1 && (
-            <PhotoUpload
-              photos={form.photos}
-              onChange={(photos) => setForm({ ...form, photos })}
-              onNext={() => setStep(2)}
-            />
+            <PhotoUpload photos={form.photos} onChange={(photos) => setForm({ ...form, photos })} onNext={() => setStep(2)} />
           )}
 
           {step === 2 && (
@@ -106,17 +101,9 @@ export default function Home() {
               sizeType={form.sizeType}
               shoeSize={form.shoeSize}
               footWidth={form.footWidth}
-              onChange={({
-                sizeSystem,
-                sizeType,
-                shoeSize,
-                footWidth,
-              }: {
-                sizeSystem: SizeSystem;
-                sizeType: SizeType;
-                shoeSize: string;
-                footWidth: FootWidth;
-              }) => setForm({ ...form, sizeSystem, sizeType, shoeSize, footWidth })}
+              onChange={(d: { sizeSystem: SizeSystem; sizeType: SizeType; shoeSize: string; footWidth: FootWidth }) =>
+                setForm({ ...form, ...d })
+              }
               onNext={() => setStep(3)}
               onBack={() => setStep(1)}
             />
@@ -125,9 +112,7 @@ export default function Home() {
           {step === 3 && (
             <CurrentShoes
               selected={form.currentShoes}
-              onChange={(currentShoes: string[]) =>
-                setForm({ ...form, currentShoes })
-              }
+              onChange={(currentShoes: string[]) => setForm({ ...form, currentShoes })}
               onNext={() => setStep(4)}
               onBack={() => setStep(2)}
             />
@@ -136,36 +121,17 @@ export default function Home() {
           {step === 4 && (
             <Experience
               experience={form.experience}
-              onChange={(experience: ExperienceLevel) =>
-                setForm({ ...form, experience })
-              }
+              onChange={(experience: ExperienceLevel) => setForm({ ...form, experience })}
               onSubmit={handleSubmit}
               onBack={() => setStep(3)}
             />
           )}
 
-          {step === "loading" && (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="relative mb-6">
-                <div className="w-14 h-14 rounded-full bg-brand-100 flex items-center justify-center">
-                  <svg className="w-7 h-7 text-brand-600 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                </div>
-                <div className="absolute inset-0 w-14 h-14 rounded-full border-2 border-brand-300 animate-pulse-ring" />
-              </div>
-              <p className="text-slate-700 font-semibold text-sm">Analyzing your feet...</p>
-              <p className="text-slate-400 text-xs mt-1">Finding the perfect shoes for you</p>
-            </div>
-          )}
+          {step === "loading" && <LoadingSpinner />}
 
-          {step === "results" && results && (
-            <Results data={results} onReset={reset} />
-          )}
+          {step === "results" && results && <Results data={results} onReset={reset} />}
         </div>
 
-        {/* Footer */}
         <p className="text-center text-xs text-slate-400 mt-6">
           Recommendations are AI-generated and should be combined with in-store fitting.
         </p>

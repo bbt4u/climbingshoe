@@ -1,5 +1,6 @@
 import { shoes } from "@/data/shoes";
 import { brandSizing } from "@/data/sizing";
+import { brandSizes, formatEuSize } from "@/data/brandSizes";
 import type { FormData } from "@/lib/types";
 
 /** Build the Claude prompt for shoe recommendations */
@@ -30,13 +31,29 @@ export function buildPrompt(body: FormData): { prompt: string; currentShoesInfo:
     2
   );
 
-  const sizeTypeNote = body.sizeType === "climbing"
-    ? `Note: This is their CLIMBING shoe size, not street shoe size. When calculating recommended sizes, treat this as an already-downsized reference. Do NOT downsize again from this number. Instead, use it to estimate their street shoe size (add back typical downsize) and then calculate recommendations from there.`
-    : `This is their street shoe size. Apply brand-specific downsizing from this number.`;
-
   const brandSizingInfo = brandSizing
     .map((b) => `- **${b.brand}**: ${b.fitTendency}. Performance downsize: ${b.performanceDownsize} EU sizes. Comfort downsize: ${b.comfortDownsize} EU sizes. ${b.notes}`)
     .join("\n");
+
+  // Build brand-specific available sizes so the AI recommends sizes that actually exist
+  const brandAvailableSizes = brandSizes
+    .map((b) => `- **${b.brand}**: EU sizes available: ${b.euSizes.map(formatEuSize).join(", ")}`)
+    .join("\n");
+
+  // Build sizing context based on what the user provided
+  const hasClimbingSize = body.climbingSize && body.climbingBrand;
+  let sizingContext: string;
+
+  if (hasClimbingSize) {
+    sizingContext = `The climber provided BOTH their street shoe size AND a climbing shoe size.
+- Street shoe size: ${body.sizeSystem} ${body.streetSize}
+- Climbing shoe size: EU ${body.climbingSize} in ${body.climbingBrand}
+
+IMPORTANT: Prioritize the climbing shoe size for accuracy. Since they already know their climbing size in ${body.climbingBrand}, use it to calibrate recommendations for other brands. For example, if they wear EU 39 in La Sportiva (runs small), they likely need EU 39.5-40 in a brand that runs true to size.`;
+  } else {
+    sizingContext = `The climber provided their street shoe size only: ${body.sizeSystem} ${body.streetSize}
+They don't have a climbing shoe size reference, so calculate recommended sizes by applying brand-specific downsizing from their street shoe size.`;
+  }
 
   const prompt = `You are an expert climbing shoe fitter with years of experience in a bouldering gear shop. Analyze the photo of both feet (top-down front view) and follow the decision tree below to recommend the 3 best bouldering shoes.
 
@@ -72,17 +89,17 @@ Use this logic to filter and rank shoes:
 6. Rank the final candidates by how many criteria they match perfectly.
 
 STEP 4 — SIZING & DOWNSIZE RECOMMENDATIONS
-For each recommended shoe, factor in brand-specific sizing. Here is how each brand fits:
+For each recommended shoe, factor in brand-specific sizing:
 
 ${brandSizingInfo}
 
-Include a recommended climbing shoe size (EU) for each recommendation. Also include the specific downsize amount from their street shoe size and explain why.
+IMPORTANT: Each brand offers specific EU sizes (not all brands use half sizes). You MUST recommend a size that the brand actually offers:
 
-${sizeTypeNote}
+${brandAvailableSizes}
+
+${sizingContext}
 
 CLIMBER PROFILE:
-- Size type: ${body.sizeType} shoe
-- Shoe size: ${body.sizeSystem} ${body.shoeSize}
 - Foot width: ${body.footWidth}
 - Experience level: ${body.experience}
 - Current well-fitting climbing shoes: ${currentShoesInfo}
@@ -97,7 +114,7 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
   "recommendations": [
     {
       "shoeId": "the shoe id from the database",
-      "recommendedSize": "EU size as a number (e.g. 41.5)",
+      "recommendedSize": "The exact EU size this brand offers (e.g. 41.5 or 41.33 for Five Ten)",
       "sizingNote": "Brief note about sizing for this specific shoe (e.g. 'Size up 0.5 from street — La Sportiva runs small')",
       "downsizeAmount": "How much to downsize from street shoe and why (e.g. '-1.5 EU from street size — aggressive fit for advanced climbing')",
       "reasoning": "2-3 sentences explaining why this shoe is ideal for their specific foot shape and profile. Reference the foot shape by name."

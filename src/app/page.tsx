@@ -12,7 +12,6 @@ import type {
   FormData,
   RecommendResponse,
   SizeSystem,
-  SizeType,
   FootWidth,
   ExperienceLevel,
 } from "@/lib/types";
@@ -20,8 +19,9 @@ import type {
 const initialForm: FormData = {
   photos: { front: null, side: null },
   sizeSystem: "US",
-  sizeType: "street",
-  shoeSize: "",
+  streetSize: "",
+  climbingSize: "",
+  climbingBrand: "",
   footWidth: "medium",
   currentShoes: [],
   experience: "beginner",
@@ -98,10 +98,11 @@ export default function Home() {
           {step === 2 && (
             <ShoeSize
               sizeSystem={form.sizeSystem}
-              sizeType={form.sizeType}
-              shoeSize={form.shoeSize}
+              streetSize={form.streetSize}
+              climbingSize={form.climbingSize}
+              climbingBrand={form.climbingBrand}
               footWidth={form.footWidth}
-              onChange={(d: { sizeSystem: SizeSystem; sizeType: SizeType; shoeSize: string; footWidth: FootWidth }) =>
+              onChange={(d: { sizeSystem: SizeSystem; streetSize: string; climbingSize: string; climbingBrand: string; footWidth: FootWidth }) =>
                 setForm({ ...form, ...d })
               }
               onNext={() => setStep(3)}

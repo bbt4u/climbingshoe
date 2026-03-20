@@ -1,5 +1,4 @@
 export type SizeSystem = "US" | "EU" | "UK" | "KR";
-export type SizeType = "street" | "climbing";
 export type FootWidth = "narrow" | "medium" | "wide";
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced" | "expert";
 export type Aggressiveness = "flat" | "moderate" | "aggressive";
@@ -29,8 +28,9 @@ export interface BuyLink {
 export interface FormData {
   photos: { front: string | null; side: string | null };
   sizeSystem: SizeSystem;
-  sizeType: SizeType;
-  shoeSize: string;
+  streetSize: string;
+  climbingSize: string;
+  climbingBrand: string;
   footWidth: FootWidth;
   currentShoes: string[];
   experience: ExperienceLevel;

@@ -1,15 +1,16 @@
 import { SizeSystem, FootWidth } from "@/lib/types";
 
-const usSizes = Array.from({ length: 25 }, (_, i) => String(4 + i * 0.5));
-const euSizes = Array.from({ length: 16 }, (_, i) => String(35 + i));
-const ukSizes = Array.from({ length: 25 }, (_, i) => String(3 + i * 0.5));
-const krSizes = Array.from({ length: 21 }, (_, i) => String(220 + i * 5));
+/** Street shoe sizes use standard whole/half increments */
+const usStreetSizes = Array.from({ length: 25 }, (_, i) => String(4 + i * 0.5));
+const euStreetSizes = Array.from({ length: 27 }, (_, i) => String(35 + i * 0.5));
+const ukStreetSizes = Array.from({ length: 25 }, (_, i) => String(3 + i * 0.5));
+const krStreetSizes = Array.from({ length: 21 }, (_, i) => String(220 + i * 5));
 
-export const sizeOptions: Record<SizeSystem, string[]> = {
-  US: usSizes,
-  EU: euSizes,
-  UK: ukSizes,
-  KR: krSizes,
+export const streetSizeOptions: Record<SizeSystem, string[]> = {
+  US: usStreetSizes,
+  EU: euStreetSizes,
+  UK: ukStreetSizes,
+  KR: krStreetSizes,
 };
 
 export const sizeLabels: Record<SizeSystem, string> = {

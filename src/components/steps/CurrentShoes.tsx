@@ -9,6 +9,7 @@ interface Props {
   onBack: () => void;
 }
 
+const MAX_SHOES = 3;
 const brands = [...new Set(shoes.map((s) => s.brand))];
 
 export default function CurrentShoes({
@@ -18,6 +19,7 @@ export default function CurrentShoes({
   onBack,
 }: Props) {
   const hasNone = selected.includes("none");
+  const shoeCount = selected.filter((s) => s !== "none").length;
 
   const toggle = (id: string) => {
     if (id === "none") {
@@ -27,7 +29,7 @@ export default function CurrentShoes({
     const without = selected.filter((s) => s !== "none");
     if (without.includes(id)) {
       onChange(without.filter((s) => s !== id));
-    } else {
+    } else if (without.length < MAX_SHOES) {
       onChange([...without, id]);
     }
   };
@@ -36,9 +38,15 @@ export default function CurrentShoes({
 
   return (
     <div className="animate-fade-in-up">
-      <h2 className="text-lg font-bold text-slate-800 mb-1">Current Climbing Shoes</h2>
-      <p className="text-slate-500 text-sm mb-4">
-        Select any climbing shoes you currently own or have used.
+      <h2 className="text-lg font-bold text-slate-800 mb-1">Best-Fitting Climbing Shoes</h2>
+      <p className="text-slate-500 text-sm mb-1">
+        Select up to {MAX_SHOES} climbing shoes that fit you well.
+      </p>
+      <p className="text-amber-600 text-xs mb-4 flex items-center gap-1.5">
+        <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Only select shoes that fit well — these help us calibrate your recommendations.
       </p>
 
       <button
@@ -52,6 +60,24 @@ export default function CurrentShoes({
         I don&apos;t have climbing shoes yet
       </button>
 
+      {!hasNone && shoeCount > 0 && (
+        <div className="flex items-center justify-between mb-3 px-1">
+          <span className="text-xs font-semibold text-brand-600">
+            {shoeCount} of {MAX_SHOES} selected
+          </span>
+          <div className="flex gap-1">
+            {Array.from({ length: MAX_SHOES }).map((_, i) => (
+              <div
+                key={i}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  i < shoeCount ? "bg-brand-500" : "bg-slate-200"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="max-h-[280px] overflow-y-auto space-y-4 mb-6 pr-1">
         {brands.map((brand) => (
           <div key={brand}>
@@ -61,20 +87,24 @@ export default function CurrentShoes({
             <div className="flex flex-wrap gap-2">
               {shoes
                 .filter((s) => s.brand === brand)
-                .map((shoe) => (
-                  <button
-                    key={shoe.id}
-                    onClick={() => toggle(shoe.id)}
-                    disabled={hasNone}
-                    className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      selected.includes(shoe.id)
-                        ? "bg-brand-600 text-white shadow-sm"
-                        : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                    }`}
-                  >
-                    {shoe.name}
-                  </button>
-                ))}
+                .map((shoe) => {
+                  const isSelected = selected.includes(shoe.id);
+                  const isDisabled = hasNone || (!isSelected && shoeCount >= MAX_SHOES);
+                  return (
+                    <button
+                      key={shoe.id}
+                      onClick={() => toggle(shoe.id)}
+                      disabled={isDisabled}
+                      className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isSelected
+                          ? "bg-brand-600 text-white shadow-sm"
+                          : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                      }`}
+                    >
+                      {shoe.name}
+                    </button>
+                  );
+                })}
             </div>
           </div>
         ))}

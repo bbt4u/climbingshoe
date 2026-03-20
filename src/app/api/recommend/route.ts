@@ -32,7 +32,7 @@ export async function POST(request: Request) {
               const shoe = shoes.find((s) => s.id === id);
               return shoe ? `${shoe.brand} ${shoe.name}` : id;
             })
-            .join(", ");
+            .join(", ") + " (these are shoes the climber says fit them well — use as reference for sizing and fit preferences)";
 
     const shoeDb = JSON.stringify(
       shoes.map((s) => ({
@@ -49,6 +49,10 @@ export async function POST(request: Request) {
       null,
       2
     );
+
+    const sizeTypeNote = body.sizeType === "climbing"
+      ? `Note: This is their CLIMBING shoe size, not street shoe size. When calculating recommended sizes, treat this as an already-downsized reference. Do NOT downsize again from this number. Instead, use it to estimate their street shoe size (add back typical downsize) and then calculate recommendations from there.`
+      : `This is their street shoe size. Apply brand-specific downsizing from this number.`;
 
     const prompt = `You are an expert climbing shoe fitter with years of experience in a bouldering gear shop. Analyze the photo of both feet (top-down front view) and follow the decision tree below to recommend the 3 best bouldering shoes.
 
@@ -80,21 +84,24 @@ Use this logic to filter and rank shoes:
    - High arch → aggressive shoes with downturn wrap the foot better
    - Low arch → flat or moderate shoes are more comfortable
    - Medium arch → any aggressiveness level works
-5. If they have current shoes, recommend something different that addresses gaps (e.g., if they have a flat beginner shoe, suggest an upgrade).
+5. If they have current shoes that fit well, use those as reference points — recommend shoes with similar fit characteristics but that address any gaps or offer progression.
 6. Rank the final candidates by how many criteria they match perfectly.
 
-STEP 4 — SIZING RECOMMENDATIONS
+STEP 4 — SIZING & DOWNSIZE RECOMMENDATIONS
 For each recommended shoe, factor in brand-specific sizing. Here is how each brand fits:
 
 ${brandSizing.map((b) => `- **${b.brand}**: ${b.fitTendency}. Performance downsize: ${b.performanceDownsize} EU sizes. Comfort downsize: ${b.comfortDownsize} EU sizes. ${b.notes}`).join("\n")}
 
-Include a recommended climbing shoe size (EU) for each recommendation based on the climber's street shoe size, the brand's sizing tendency, and the experience level. Beginners should size for comfort, experts for performance.
+Include a recommended climbing shoe size (EU) for each recommendation. Also include the specific downsize amount from their street shoe size and explain why.
+
+${sizeTypeNote}
 
 CLIMBER PROFILE:
+- Size type: ${body.sizeType} shoe
 - Shoe size: ${body.sizeSystem} ${body.shoeSize}
 - Foot width: ${body.footWidth}
 - Experience level: ${body.experience}
-- Current climbing shoes: ${currentShoesInfo}
+- Current well-fitting climbing shoes: ${currentShoesInfo}
 
 SHOE DATABASE:
 ${shoeDb}
@@ -108,18 +115,21 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
       "shoeId": "the shoe id from the database",
       "recommendedSize": "EU size as a number (e.g. 41.5)",
       "sizingNote": "Brief note about sizing for this specific shoe (e.g. 'Size up 0.5 from street — La Sportiva runs small')",
+      "downsizeAmount": "How much to downsize from street shoe and why (e.g. '-1.5 EU from street size — aggressive fit for advanced climbing')",
       "reasoning": "2-3 sentences explaining why this shoe is ideal for their specific foot shape and profile. Reference the foot shape by name."
     },
     {
       "shoeId": "...",
       "recommendedSize": "...",
       "sizingNote": "...",
+      "downsizeAmount": "...",
       "reasoning": "..."
     },
     {
       "shoeId": "...",
       "recommendedSize": "...",
       "sizingNote": "...",
+      "downsizeAmount": "...",
       "reasoning": "..."
     }
   ]
@@ -127,7 +137,7 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 1500,
+      max_tokens: 2000,
       messages: [
         {
           role: "user",
@@ -169,7 +179,7 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
       : "egyptian";
 
     const recommendations: Recommendation[] = parsed.recommendations.map(
-      (rec: { shoeId: string; reasoning: string; recommendedSize?: string; sizingNote?: string }) => {
+      (rec: { shoeId: string; reasoning: string; recommendedSize?: string; sizingNote?: string; downsizeAmount?: string }) => {
         const shoe = shoes.find((s) => s.id === rec.shoeId);
         if (!shoe) throw new Error(`Unknown shoe ID: ${rec.shoeId}`);
         return {
@@ -178,6 +188,7 @@ Return your response as JSON only (no markdown, no code blocks), in this exact f
           reasoning: rec.reasoning,
           recommendedSize: rec.recommendedSize || "",
           sizingNote: rec.sizingNote || "",
+          downsizeAmount: rec.downsizeAmount || "",
         };
       }
     );

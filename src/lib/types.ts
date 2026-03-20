@@ -1,4 +1,5 @@
-export type SizeSystem = "US" | "EU";
+export type SizeSystem = "US" | "EU" | "UK" | "KR";
+export type SizeType = "street" | "climbing";
 export type FootWidth = "narrow" | "medium" | "wide";
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced" | "expert";
 export type Aggressiveness = "flat" | "moderate" | "aggressive";
@@ -16,11 +17,19 @@ export interface Shoe {
   idealFootShapes: FootShape[];
   keyFeatures: string[];
   description: string;
+  buyLinks?: BuyLink[];
+}
+
+export interface BuyLink {
+  store: string;
+  url: string;
+  type: "online" | "retail";
 }
 
 export interface FormData {
   photos: { front: string | null; side: string | null };
   sizeSystem: SizeSystem;
+  sizeType: SizeType;
   shoeSize: string;
   footWidth: FootWidth;
   currentShoes: string[];
@@ -33,6 +42,7 @@ export interface Recommendation {
   reasoning: string;
   recommendedSize: string;
   sizingNote: string;
+  downsizeAmount: string;
 }
 
 export interface RecommendResponse {

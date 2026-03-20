@@ -21,20 +21,22 @@ export async function POST(request: Request) {
 
     const anthropic = new Anthropic();
     const frontBase64 = body.photos.front.replace(/^data:image\/\w+;base64,/, "");
+    const sideBase64 = body.photos.side?.replace(/^data:image\/\w+;base64,/, "");
     const { prompt } = buildPrompt(body);
+
+    // Build image content — include side photo if available
+    const imageContent: Anthropic.MessageCreateParams["messages"][0]["content"] = [
+      { type: "image", source: { type: "base64", media_type: "image/jpeg", data: frontBase64 } },
+    ];
+    if (sideBase64 && sideBase64 !== frontBase64) {
+      imageContent.push({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: sideBase64 } });
+    }
+    imageContent.push({ type: "text", text: prompt });
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 2000,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: "image/jpeg", data: frontBase64 } },
-            { type: "text", text: prompt },
-          ],
-        },
-      ],
+      messages: [{ role: "user", content: imageContent }],
     });
 
     const textBlock = response.content.find((b) => b.type === "text");

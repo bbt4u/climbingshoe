@@ -3,6 +3,7 @@
 const steps = [
   { label: "Photos", icon: "camera" },
   { label: "Size", icon: "ruler" },
+  { label: "Fit", icon: "shoe" },
   { label: "Shoes", icon: "shoe" },
   { label: "Level", icon: "chart" },
 ];

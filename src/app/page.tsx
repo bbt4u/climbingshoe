@@ -2,26 +2,30 @@
 
 import { useState } from "react";
 import StepIndicator from "@/components/StepIndicator";
+import ScanModeSelector from "@/components/ScanModeSelector";
 import PhotoUpload from "@/components/steps/PhotoUpload";
 import ShoeSize from "@/components/steps/ShoeSize";
+import FitQuestions from "@/components/steps/FitQuestions";
 import CurrentShoes from "@/components/steps/CurrentShoes";
 import Experience from "@/components/steps/Experience";
 import Results from "@/components/Results";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import type { FormData, RecommendResponse, SizeSystem, FootWidth, ExperienceLevel } from "@/lib/types";
+import type { FormData, RecommendResponse, SizeSystem, ScanMode, FitAnswers, ExperienceLevel } from "@/lib/types";
 
 const initialForm: FormData = {
   photos: { front: null, side: null },
+  scanMode: "quick",
   sizeSystem: "US",
   streetSize: "",
   climbingSize: "",
   climbingBrand: "",
-  footWidth: "medium",
+  fitAnswers: { tightOnSides: "", sizeUpForWidth: "", heelSlips: "" },
   currentShoes: [],
   experience: "beginner",
 };
 
-type Step = 0 | 1 | 2 | 3 | 4 | "loading" | "results";
+// 0=hero, 0.5=mode select, 1=photos, 2=size, 3=fit, 4=shoes, 5=experience
+type Step = 0 | 0.5 | 1 | 2 | 3 | 4 | 5 | "loading" | "results";
 
 export default function Home() {
   const [step, setStep] = useState<Step>(0);
@@ -44,55 +48,43 @@ export default function Home() {
       setStep("results");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-      setStep(4);
+      setStep(5);
     }
   };
 
   const reset = () => { setForm(initialForm); setResults(null); setError(null); setStep(0); };
 
-  // Landing / hero state
+  // Hero
   if (step === 0) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
         <div className="text-center animate-fade-in-up max-w-lg">
-          <div className="inline-flex items-center gap-2 bg-accent/10 text-accent text-xs font-bold px-4 py-1.5 rounded-full mb-6 tracking-wider uppercase border border-accent/20">
-            AI-Powered
-          </div>
-          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-4">
-            Boulder<span className="text-accent">Fit</span>
-          </h1>
-          <p className="text-text-secondary text-lg sm:text-xl mb-2">
-            Stop guessing your shoe size. Start sending.
-          </p>
-          <p className="text-text-muted text-sm mb-10 max-w-sm mx-auto">
-            Upload a photo of your feet and get personalized climbing shoe recommendations powered by AI.
-          </p>
-          <button
-            onClick={() => setStep(1)}
-            className="px-10 py-4 bg-accent hover:bg-accent-light text-white font-bold text-lg rounded-2xl shadow-lg shadow-accent/25 hover:shadow-accent/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-          >
+          <div className="inline-flex items-center gap-2 bg-accent/10 text-accent text-xs font-bold px-4 py-1.5 rounded-full mb-6 tracking-wider uppercase border border-accent/20">AI-Powered</div>
+          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-4">Boulder<span className="text-accent">Fit</span></h1>
+          <p className="text-text-secondary text-lg sm:text-xl mb-2">Stop guessing your shoe size. Start sending.</p>
+          <p className="text-text-muted text-sm mb-10 max-w-sm mx-auto">Upload a photo of your feet and get personalized climbing shoe recommendations powered by AI.</p>
+          <button onClick={() => setStep(0.5)}
+            className="px-10 py-4 bg-accent hover:bg-accent-light text-white font-bold text-lg rounded-2xl shadow-lg shadow-accent/25 hover:shadow-accent/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
             Find My Shoe
           </button>
         </div>
-        <footer className="fixed bottom-0 left-0 right-0 py-4 text-center">
-          <p className="text-text-muted text-xs">Built by climbers, for climbers</p>
-        </footer>
+        <footer className="fixed bottom-0 left-0 right-0 py-4 text-center"><p className="text-text-muted text-xs">Built by climbers, for climbers</p></footer>
       </main>
     );
   }
 
+  // Map step numbers to StepIndicator (5 visible steps)
+  const stepNum = typeof step === "number" ? Math.ceil(step) : 0;
+
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-6 sm:py-10">
-      {/* Compact header */}
       <button onClick={() => setStep(0)} className="mb-6 group">
-        <h1 className="text-2xl font-extrabold tracking-tight text-white group-hover:text-accent transition-colors">
-          Boulder<span className="text-accent">Fit</span>
-        </h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-white group-hover:text-accent transition-colors">Boulder<span className="text-accent">Fit</span></h1>
       </button>
 
       <div className="w-full max-w-xl">
         <div className="bg-surface/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-surface-border/50 p-5 sm:p-7">
-          {typeof step === "number" && step >= 1 && <StepIndicator current={step} />}
+          {stepNum >= 1 && stepNum <= 5 && <StepIndicator current={stepNum} />}
 
           {error && (
             <div className="mb-5 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400 flex items-start gap-2">
@@ -103,18 +95,19 @@ export default function Home() {
             </div>
           )}
 
-          {step === 1 && <PhotoUpload photos={form.photos} onChange={(photos) => setForm({ ...form, photos })} onNext={() => setStep(2)} />}
+          {step === 0.5 && <ScanModeSelector selected={form.scanMode} onChange={(scanMode: ScanMode) => setForm({ ...form, scanMode })} onNext={() => setStep(1)} />}
+          {step === 1 && <PhotoUpload photos={form.photos} scanMode={form.scanMode} onChange={(photos) => setForm({ ...form, photos })} onNext={() => setStep(2)} />}
           {step === 2 && (
-            <ShoeSize sizeSystem={form.sizeSystem} streetSize={form.streetSize} climbingSize={form.climbingSize} climbingBrand={form.climbingBrand} footWidth={form.footWidth}
-              onChange={(d: { sizeSystem: SizeSystem; streetSize: string; climbingSize: string; climbingBrand: string; footWidth: FootWidth }) => setForm({ ...form, ...d })}
+            <ShoeSize sizeSystem={form.sizeSystem} streetSize={form.streetSize} climbingSize={form.climbingSize} climbingBrand={form.climbingBrand}
+              onChange={(d: { sizeSystem: SizeSystem; streetSize: string; climbingSize: string; climbingBrand: string }) => setForm({ ...form, ...d })}
               onNext={() => setStep(3)} onBack={() => setStep(1)} />
           )}
-          {step === 3 && <CurrentShoes selected={form.currentShoes} onChange={(currentShoes: string[]) => setForm({ ...form, currentShoes })} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
-          {step === 4 && <Experience experience={form.experience} onChange={(experience: ExperienceLevel) => setForm({ ...form, experience })} onSubmit={handleSubmit} onBack={() => setStep(3)} />}
+          {step === 3 && <FitQuestions answers={form.fitAnswers} onChange={(fitAnswers: FitAnswers) => setForm({ ...form, fitAnswers })} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
+          {step === 4 && <CurrentShoes selected={form.currentShoes} onChange={(currentShoes: string[]) => setForm({ ...form, currentShoes })} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
+          {step === 5 && <Experience experience={form.experience} onChange={(experience: ExperienceLevel) => setForm({ ...form, experience })} onSubmit={handleSubmit} onBack={() => setStep(4)} />}
           {step === "loading" && <LoadingSpinner />}
           {step === "results" && results && <Results data={results} onReset={reset} />}
         </div>
-
         <p className="text-center text-xs text-text-muted mt-6">Built by climbers, for climbers</p>
       </div>
     </main>

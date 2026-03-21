@@ -9,130 +9,88 @@ export function buildPrompt(body: FormData): { prompt: string; currentShoesInfo:
     body.currentShoes.includes("none") || body.currentShoes.length === 0
       ? "None — this person does not currently own climbing shoes."
       : body.currentShoes
-          .map((id) => {
-            const shoe = shoes.find((s) => s.id === id);
-            return shoe ? `${shoe.brand} ${shoe.name}` : id;
-          })
-          .join(", ") + " (these are shoes the climber says fit them well — use as reference for sizing and fit preferences)";
+          .map((id) => { const s = shoes.find((x) => x.id === id); return s ? `${s.brand} ${s.name}` : id; })
+          .join(", ") + " (these fit them well — use as reference)";
 
   const shoeDb = JSON.stringify(
-    shoes.map((s) => ({
-      id: s.id,
-      name: `${s.brand} ${s.name}`,
-      priceRange: s.priceRange,
-      aggressiveness: s.aggressiveness,
-      bestFor: s.bestFor,
-      fitProfile: s.fitProfile,
-      idealFootShapes: s.idealFootShapes,
-      keyFeatures: s.keyFeatures,
-      description: s.description,
-    })),
-    null,
-    2
+    shoes.map((s) => ({ id: s.id, name: `${s.brand} ${s.name}`, priceRange: s.priceRange, aggressiveness: s.aggressiveness, bestFor: s.bestFor, fitProfile: s.fitProfile, idealFootShapes: s.idealFootShapes, keyFeatures: s.keyFeatures, description: s.description })), null, 2
   );
 
-  const brandSizingInfo = brandSizing
-    .map((b) => `- **${b.brand}**: ${b.fitTendency}. Performance downsize: ${b.performanceDownsize} EU sizes. Comfort downsize: ${b.comfortDownsize} EU sizes. ${b.notes}`)
-    .join("\n");
+  const brandSizingInfo = brandSizing.map((b) => `- **${b.brand}**: ${b.fitTendency}. Performance downsize: ${b.performanceDownsize} EU sizes. Comfort downsize: ${b.comfortDownsize} EU sizes. ${b.notes}`).join("\n");
+  const brandAvailableSizes = brandSizes.map((b) => `- **${b.brand}**: ${b.euSizes.map(formatEuSize).join(", ")}`).join("\n");
 
-  // Build brand-specific available sizes so the AI recommends sizes that actually exist
-  const brandAvailableSizes = brandSizes
-    .map((b) => `- **${b.brand}**: EU sizes available: ${b.euSizes.map(formatEuSize).join(", ")}`)
-    .join("\n");
-
-  // Build sizing context based on what the user provided
   const hasClimbingSize = body.climbingSize && body.climbingBrand;
-  let sizingContext: string;
+  const sizingContext = hasClimbingSize
+    ? `Street shoe: ${body.sizeSystem} ${body.streetSize}. Climbing shoe: EU ${body.climbingSize} in ${body.climbingBrand}. PRIORITIZE the climbing shoe size for calibration.`
+    : `Street shoe only: ${body.sizeSystem} ${body.streetSize}. Apply brand-specific downsizing.`;
 
-  if (hasClimbingSize) {
-    sizingContext = `The climber provided BOTH their street shoe size AND a climbing shoe size.
-- Street shoe size: ${body.sizeSystem} ${body.streetSize}
-- Climbing shoe size: EU ${body.climbingSize} in ${body.climbingBrand}
+  // Indirect fit answers for width estimation
+  const fa = body.fitAnswers;
+  const fitContext = `Indirect fit indicators (do NOT ask the user directly about width — estimate from photo + these answers):
+- Shoes feel tight on sides: ${fa.tightOnSides || "not answered"}
+- Sizes up for width: ${fa.sizeUpForWidth || "not answered"}
+- Heel slips in shoes: ${fa.heelSlips || "not answered"}
+Use these signals alongside the photo to estimate forefoot width, heel width, and overall volume. Present width as an estimate.`;
 
-IMPORTANT: Prioritize the climbing shoe size for accuracy. Since they already know their climbing size in ${body.climbingBrand}, use it to calibrate recommendations for other brands. For example, if they wear EU 39 in La Sportiva (runs small), they likely need EU 39.5-40 in a brand that runs true to size.`;
-  } else {
-    sizingContext = `The climber provided their street shoe size only: ${body.sizeSystem} ${body.streetSize}
-They don't have a climbing shoe size reference, so calculate recommended sizes by applying brand-specific downsizing from their street shoe size.`;
-  }
+  const scanNote = body.scanMode === "precision"
+    ? "PRECISION SCAN: The photo includes an A4 paper reference. Use the A4 paper (210×297mm) visible in the image to calibrate measurements. Extract approximate foot length, forefoot width, and heel width relative to the A4 dimensions."
+    : "QUICK SCAN: No calibration reference. Estimate proportions from the photo alone.";
 
-  const prompt = `You are an expert climbing shoe fitter with years of experience in a bouldering gear shop. Analyze the photo of both feet (top-down front view) and follow the decision tree below to recommend the 3 best bouldering shoes.
+  const prompt = `You are an expert climbing shoe fitter. Analyze the foot photos and recommend the 3 best bouldering shoes.
+
+${scanNote}
 
 STEP 1 — CLASSIFY FOOT SHAPE
-Look at the photo and classify the foot into one of 5 types based on toe pattern:
+Classify into: Egyptian, Roman, Greek, German, or Celtic based on toe pattern.
 
-- **Egyptian**: Big toe is the longest, each subsequent toe is shorter in a diagonal line. Tapered shape. Most common type (~70% of people).
-- **Roman**: First three toes (big toe, second, third) are roughly the same length, creating a squared-off front. Wider forefoot.
-- **Greek**: Second toe extends beyond the big toe. Creates a pointed/triangular toe profile.
-- **German**: Big toe is the longest, remaining four toes are roughly the same shorter length. Wide forefoot with a step-down after big toe.
-- **Celtic**: Second toe is longest (like Greek), but third toe is nearly as tall, with big toe shorter. Irregular/uneven profile.
+STEP 2 — ESTIMATE FOOT DIMENSIONS
+From the photo, estimate:
+- Foot shape classification
+- Forefoot width (narrow/medium/wide)
+- Heel width (narrow/medium/wide)
+- Overall volume (low/medium/high)
+- Any notable features (bunions, high instep, asymmetry)
 
-STEP 2 — ASSESS ADDITIONAL FOOT FEATURES
-From the photo, also assess:
-- Estimated foot width and volume
-- Any asymmetry between left and right feet
-- Any notable features (bunions, high instep, etc.)
+${fitContext}
 
-STEP 3 — DECISION TREE FOR SHOE SELECTION
-Use this logic to filter and rank shoes:
+STEP 3 — DECISION TREE
+1. Match shoes whose "idealFootShapes" includes detected shape
+2. Filter by experience level
+3. Factor in estimated width: narrow feet → narrow/medium fitProfile, wide → wide/high-volume
+4. Factor in arch/volume
+5. Use current shoes as reference if provided
+6. Rank by criteria match
 
-1. Start with shoes whose "idealFootShapes" includes the detected foot shape.
-2. Filter by experience level — only include shoes whose "bestFor" includes the climber's level.
-3. Factor in foot width:
-   - Narrow feet → prefer "narrow" or "medium" fitProfile shoes
-   - Medium feet → prefer "medium" fitProfile shoes
-   - Wide feet → prefer "wide" or "high-volume" fitProfile shoes
-4. Factor in arch height:
-   - High arch → aggressive shoes with downturn wrap the foot better
-   - Low arch → flat or moderate shoes are more comfortable
-   - Medium arch → any aggressiveness level works
-5. If they have current shoes that fit well, use those as reference points — recommend shoes with similar fit characteristics but that address any gaps or offer progression.
-6. Rank the final candidates by how many criteria they match perfectly.
-
-STEP 4 — SIZING & DOWNSIZE RECOMMENDATIONS
-For each recommended shoe, factor in brand-specific sizing:
-
+STEP 4 — SIZING
+Brand sizing info:
 ${brandSizingInfo}
 
-IMPORTANT: Each brand offers specific EU sizes (not all brands use half sizes). You MUST recommend a size that the brand actually offers:
-
+Available sizes per brand (ONLY recommend sizes that exist):
 ${brandAvailableSizes}
 
 ${sizingContext}
 
 CLIMBER PROFILE:
-- Foot width: ${body.footWidth}
-- Experience level: ${body.experience}
-- Current well-fitting climbing shoes: ${currentShoesInfo}
+- Experience: ${body.experience}
+- Current shoes: ${currentShoesInfo}
 
 SHOE DATABASE:
 ${shoeDb}
 
-Return your response as JSON only (no markdown, no code blocks), in this exact format:
+Return JSON only (no markdown):
 {
-  "footShape": "egyptian" | "roman" | "greek" | "german" | "celtic",
-  "footAnalysis": "2-3 sentences: state the detected foot shape, arch height, volume, and how these characteristics influence shoe choice.",
+  "footShape": "egyptian"|"roman"|"greek"|"german"|"celtic",
+  "footAnalysis": "2-3 sentences: foot shape, estimated forefoot/heel width, volume, and how these influence shoe choice. Present width as an estimate based on photo analysis.",
   "recommendations": [
     {
-      "shoeId": "the shoe id from the database",
-      "recommendedSize": "The exact EU size this brand offers (e.g. 41.5 or 41.33 for Five Ten)",
-      "sizingNote": "Brief note about sizing for this specific shoe (e.g. 'Size up 0.5 from street — La Sportiva runs small')",
-      "downsizeAmount": "How much to downsize from street shoe and why (e.g. '-1.5 EU from street size — aggressive fit for advanced climbing')",
-      "reasoning": "2-3 sentences explaining why this shoe is ideal for their specific foot shape and profile. Reference the foot shape by name."
+      "shoeId": "id from database",
+      "recommendedSize": "exact EU size the brand offers",
+      "sizingNote": "brief sizing note",
+      "downsizeAmount": "downsize from street shoe and why",
+      "reasoning": "2-3 sentences why this shoe fits their foot shape and estimated dimensions"
     },
-    {
-      "shoeId": "...",
-      "recommendedSize": "...",
-      "sizingNote": "...",
-      "downsizeAmount": "...",
-      "reasoning": "..."
-    },
-    {
-      "shoeId": "...",
-      "recommendedSize": "...",
-      "sizingNote": "...",
-      "downsizeAmount": "...",
-      "reasoning": "..."
-    }
+    { "shoeId":"...", "recommendedSize":"...", "sizingNote":"...", "downsizeAmount":"...", "reasoning":"..." },
+    { "shoeId":"...", "recommendedSize":"...", "sizingNote":"...", "downsizeAmount":"...", "reasoning":"..." }
   ]
 }`;
 

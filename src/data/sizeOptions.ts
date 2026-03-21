@@ -1,4 +1,4 @@
-import { SizeSystem, FootWidth } from "@/lib/types";
+import { SizeSystem } from "@/lib/types";
 
 /** Street shoe sizes use standard whole/half increments */
 const usStreetSizes = Array.from({ length: 25 }, (_, i) => String(4 + i * 0.5));
@@ -18,10 +18,4 @@ export const sizeLabels: Record<SizeSystem, string> = {
   EU: "EU",
   UK: "UK",
   KR: "KR (mm)",
-};
-
-export const widthInfo: Record<FootWidth, string> = {
-  narrow: "Slim profile",
-  medium: "Standard fit",
-  wide: "Broad profile",
 };

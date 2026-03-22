@@ -1,4 +1,36 @@
+"use client";
+
+import { useState, useEffect } from "react";
+
+const phrases = [
+  "Smearing the wall...",
+  "Toeing in...",
+  "Heel hooking...",
+  "Toe hooking...",
+  "Bicycling...",
+  "Flagging...",
+  "Edging...",
+  "Backstepping...",
+  "Toe scumming...",
+  "Knee barring...",
+  "Bat hanging...",
+];
+
 export default function LoadingSpinner() {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIndex((i) => (i + 1) % phrases.length);
+        setVisible(true);
+      }, 300);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <div className="relative mb-6">
@@ -11,7 +43,9 @@ export default function LoadingSpinner() {
         <div className="absolute inset-0 w-16 h-16 rounded-full border-2 border-accent/40 animate-pulse-ring" />
       </div>
       <p className="text-white font-bold text-sm">Analyzing your feet...</p>
-      <p className="text-text-muted text-xs mt-1">Finding the perfect shoes for you</p>
+      <p className={`text-accent text-xs mt-3 font-semibold transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+        {phrases[index]}
+      </p>
     </div>
   );
 }

@@ -108,7 +108,9 @@ export default function Home() {
           {step === "loading" && <LoadingSpinner />}
           {step === "results" && results && <Results data={results} onReset={reset} />}
         </div>
-        <p className="text-center text-xs text-text-muted mt-6">Built by climbers, for climbers</p>
+        <p className="text-center text-xs text-text-muted mt-6">
+          {step === "results" ? "Smear with confidence." : "Built by climbers, for climbers"}
+        </p>
       </div>
     </main>
   );

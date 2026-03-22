@@ -61,7 +61,7 @@ export default function Home() {
         <div className="text-center animate-fade-in-up max-w-lg">
           <div className="inline-flex items-center gap-2 bg-accent/10 text-accent text-xs font-bold px-4 py-1.5 rounded-full mb-6 tracking-wider uppercase border border-accent/20">AI-Powered</div>
           <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-4">Boulder<span className="text-accent">Fit</span></h1>
-          <p className="text-text-secondary text-lg sm:text-xl mb-2">Stop guessing your shoe size. Start sending.</p>
+          <p className="text-text-secondary text-lg sm:text-xl mb-2">The beta for your perfect shoe.</p>
           <p className="text-text-muted text-sm mb-10 max-w-sm mx-auto">Upload a photo of your feet and get personalized climbing shoe recommendations powered by AI.</p>
           <button onClick={() => setStep(0.5)}
             className="px-10 py-4 bg-accent hover:bg-accent-light text-white font-bold text-lg rounded-2xl shadow-lg shadow-accent/25 hover:shadow-accent/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">

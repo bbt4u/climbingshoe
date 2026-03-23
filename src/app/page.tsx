@@ -68,7 +68,7 @@ export default function Home() {
             Find My Shoe
           </button>
         </div>
-        <footer className="fixed bottom-0 left-0 right-0 py-4 text-center"><p className="text-text-muted text-xs">Built by climbers, for climbers</p></footer>
+        <footer className="fixed bottom-0 left-0 right-0 py-4 text-center"><p className="text-text-muted text-xs">Find the beta for your shoes</p></footer>
       </main>
     );
   }
@@ -109,7 +109,7 @@ export default function Home() {
           {step === "results" && results && <Results data={results} onReset={reset} />}
         </div>
         <p className="text-center text-xs text-text-muted mt-6">
-          {step === "results" ? "Smear with confidence." : "Built by climbers, for climbers"}
+          {step === "results" ? "Smear with confidence." : "Find the beta for your shoes"}
         </p>
       </div>
     </main>

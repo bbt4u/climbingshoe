@@ -4,7 +4,7 @@ interface Props {
   angleOk: boolean;
   lightingOk: boolean;
   angleSupported: boolean;
-  isPrecision?: boolean;
+  showA4?: boolean;
   a4Detected?: boolean;
 }
 
@@ -27,7 +27,7 @@ function Badge({ ok, label }: { ok: boolean; label: string }) {
   );
 }
 
-export default function ConditionIndicators({ angleOk, lightingOk, angleSupported, isPrecision, a4Detected }: Props) {
+export default function ConditionIndicators({ angleOk, lightingOk, angleSupported, showA4, a4Detected }: Props) {
   return (
     <div className="flex flex-wrap gap-1.5 justify-center">
       {angleSupported ? (
@@ -36,7 +36,7 @@ export default function ConditionIndicators({ angleOk, lightingOk, angleSupporte
         <Badge ok={true} label="Manual mode" />
       )}
       <Badge ok={lightingOk} label={lightingOk ? "Lighting OK" : "Too dark"} />
-      {isPrecision && (
+      {showA4 && (
         <Badge ok={!!a4Detected} label={a4Detected ? "A4 detected" : "No A4 paper"} />
       )}
     </div>

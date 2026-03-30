@@ -32,9 +32,7 @@ export function buildPrompt(body: FormData): { prompt: string; currentShoesInfo:
 - Heel slips in shoes: ${fa.heelSlips || "not answered"}
 Use these signals alongside the photo to estimate forefoot width, heel width, and overall volume. Present width as an estimate.`;
 
-  const scanNote = body.scanMode === "precision"
-    ? "PRECISION SCAN: The photo includes an A4 paper reference. Use the A4 paper (210×297mm) visible in the image to calibrate measurements. Extract approximate foot length, forefoot width, and heel width relative to the A4 dimensions."
-    : "QUICK SCAN: No calibration reference. Estimate proportions from the photo alone.";
+  const scanNote = "PRECISION SCAN: The photo includes an A4 paper reference. Use the A4 paper (210×297mm) visible in the image to calibrate measurements. Extract approximate foot length, forefoot width, and heel width relative to the A4 dimensions.";
 
   const prompt = `You are an expert climbing shoe fitter. Analyze the foot photos and recommend the 3 best bouldering shoes.
 

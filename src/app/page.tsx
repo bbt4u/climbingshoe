@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import StepIndicator from "@/components/StepIndicator";
-import ScanModeSelector from "@/components/ScanModeSelector";
 import PhotoUpload from "@/components/steps/PhotoUpload";
 import ShoeSize from "@/components/steps/ShoeSize";
 import FitQuestions from "@/components/steps/FitQuestions";
@@ -10,11 +9,10 @@ import CurrentShoes from "@/components/steps/CurrentShoes";
 import Experience from "@/components/steps/Experience";
 import Results from "@/components/Results";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import type { FormData, RecommendResponse, SizeSystem, ScanMode, FitAnswers, ExperienceLevel } from "@/lib/types";
+import type { FormData, RecommendResponse, SizeSystem, FitAnswers, ExperienceLevel } from "@/lib/types";
 
 const initialForm: FormData = {
   photos: { front: null, side: null },
-  scanMode: "quick",
   sizeSystem: "US",
   streetSize: "",
   climbingSize: "",
@@ -24,8 +22,7 @@ const initialForm: FormData = {
   experience: "beginner",
 };
 
-// 0=hero, 0.5=mode select, 1=photos, 2=size, 3=fit, 4=shoes, 5=experience
-type Step = 0 | 0.5 | 1 | 2 | 3 | 4 | 5 | "loading" | "results";
+type Step = 0 | 1 | 2 | 3 | 4 | 5 | "loading" | "results";
 
 export default function Home() {
   const [step, setStep] = useState<Step>(0);
@@ -54,7 +51,6 @@ export default function Home() {
 
   const reset = () => { setForm(initialForm); setResults(null); setError(null); setStep(0); };
 
-  // Hero
   if (step === 0) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
@@ -63,7 +59,7 @@ export default function Home() {
           <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-4">Boulder<span className="text-accent">Fit</span></h1>
           <p className="text-text-secondary text-lg sm:text-xl mb-2">The beta for your perfect shoe.</p>
           <p className="text-text-muted text-sm mb-10 max-w-sm mx-auto">Upload a photo of your feet and get personalized climbing shoe recommendations powered by AI.</p>
-          <button onClick={() => setStep(0.5)}
+          <button onClick={() => setStep(1)}
             className="px-10 py-4 bg-accent hover:bg-accent-light text-white font-bold text-lg rounded-2xl shadow-lg shadow-accent/25 hover:shadow-accent/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
             Find My Shoe
           </button>
@@ -73,8 +69,7 @@ export default function Home() {
     );
   }
 
-  // Map step numbers to StepIndicator (5 visible steps)
-  const stepNum = typeof step === "number" ? Math.ceil(step) : 0;
+  const stepNum = typeof step === "number" ? step : 0;
 
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-6 sm:py-10">
@@ -95,8 +90,7 @@ export default function Home() {
             </div>
           )}
 
-          {step === 0.5 && <ScanModeSelector selected={form.scanMode} onChange={(scanMode: ScanMode) => setForm({ ...form, scanMode })} onNext={() => setStep(1)} />}
-          {step === 1 && <PhotoUpload photos={form.photos} scanMode={form.scanMode} onChange={(photos) => setForm({ ...form, photos })} onNext={() => setStep(2)} />}
+          {step === 1 && <PhotoUpload photos={form.photos} onChange={(photos) => setForm({ ...form, photos })} onNext={() => setStep(2)} />}
           {step === 2 && (
             <ShoeSize sizeSystem={form.sizeSystem} streetSize={form.streetSize} climbingSize={form.climbingSize} climbingBrand={form.climbingBrand}
               onChange={(d: { sizeSystem: SizeSystem; streetSize: string; climbingSize: string; climbingBrand: string }) => setForm({ ...form, ...d })}

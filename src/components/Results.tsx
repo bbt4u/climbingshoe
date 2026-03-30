@@ -33,13 +33,6 @@ export default function Results({ data, onReset }: Props) {
       <div className="text-center mb-5">
         <h2 className="text-xl font-extrabold text-white">Your Top 3 Picks</h2>
         <p className="text-text-muted text-xs mt-1">Personalized for your feet</p>
-        <span className={`inline-block mt-2 text-[10px] font-bold px-3 py-1 rounded-full ${
-          data.scanMode === "precision"
-            ? "bg-teal/15 text-teal border border-teal/30"
-            : "bg-surface-overlay text-text-muted border border-surface-border"
-        }`}>
-          {data.scanMode === "precision" ? "Precision Measurement" : "Quick Estimate"}
-        </span>
       </div>
 
       {/* Foot Shape */}
@@ -140,25 +133,6 @@ export default function Results({ data, onReset }: Props) {
       </div>
 
       <RetailerGrid />
-
-      {/* Upgrade prompt for quick scan users */}
-      {data.scanMode !== "precision" && (
-        <div className="bg-teal/5 border border-teal/20 rounded-xl p-4 mb-5">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-teal/20 flex items-center justify-center shrink-0 mt-0.5">
-              <svg className="w-4 h-4 text-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-teal mb-0.5">Want more accurate results?</p>
-              <p className="text-[11px] text-text-muted leading-relaxed">
-                Get more accurate shoe recommendations with Precision Scan — uses A4 paper for calibrated foot measurements.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <button onClick={onReset}
         className="w-full py-3 rounded-xl font-semibold border border-surface-border text-text-secondary hover:bg-surface-overlay hover:text-white transition-all">

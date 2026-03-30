@@ -3,16 +3,14 @@
 import { useRef, useState, useCallback } from "react";
 import { resizeImage } from "@/utils/resizeImage";
 import CameraView from "@/components/CameraView";
-import type { ScanMode } from "@/lib/types";
 
 interface Props {
   photos: { front: string | null; side: string | null };
-  scanMode: ScanMode;
   onChange: (photos: { front: string | null; side: string | null }) => void;
   onNext: () => void;
 }
 
-export default function PhotoUpload({ photos, scanMode, onChange, onNext }: Props) {
+export default function PhotoUpload({ photos, onChange, onNext }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -20,11 +18,15 @@ export default function PhotoUpload({ photos, scanMode, onChange, onNext }: Prop
 
   const openCamera = useCallback(async () => {
     try {
+      // Use ideal hint so it falls back to front camera if rear unavailable
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 960 } },
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 960 } },
       });
       setCameraStream(stream);
-    } catch { fileRef.current?.click(); }
+    } catch {
+      // Camera unavailable — fall back to file upload
+      fileRef.current?.click();
+    }
   }, []);
 
   const handleCameraComplete = useCallback((p: { front: string; side: string }) => {
@@ -43,18 +45,13 @@ export default function PhotoUpload({ photos, scanMode, onChange, onNext }: Prop
     if (file?.type.startsWith("image/")) { const url = await resizeImage(file); onChange({ front: url, side: photos.side }); }
   };
 
-  const modeLabel = scanMode === "precision" ? "Precision Scan" : "Quick Scan";
-
   return (
     <div className="animate-fade-in-up">
       <h2 className="text-lg font-bold text-white mb-1">Photos of Your Feet</h2>
-      <p className="text-text-secondary text-sm mb-2">We need a top-down and side view for the best recommendations.</p>
-      <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-4 ${
-        scanMode === "precision" ? "bg-teal/15 text-teal border border-teal/30" : "bg-accent/15 text-accent border border-accent/30"
-      }`}>{modeLabel}</span>
+      <p className="text-text-secondary text-sm mb-5">Place feet on A4 paper, then capture a top-down and side view.</p>
 
       {cameraStream && (
-        <CameraView stream={cameraStream} scanMode={scanMode} onComplete={handleCameraComplete}
+        <CameraView stream={cameraStream} onComplete={handleCameraComplete}
           onClose={() => { cameraStream.getTracks().forEach((t) => t.stop()); setCameraStream(null); }} />
       )}
 
@@ -86,9 +83,7 @@ export default function PhotoUpload({ photos, scanMode, onChange, onNext }: Prop
               </svg>
             </div>
             <p className="text-text-secondary text-sm font-semibold mb-1">Two photos needed</p>
-            <p className="text-text-muted text-xs mb-5">
-              {scanMode === "precision" ? "Place feet on A4 paper, then capture top-down + side view" : "Top-down view + side view of your feet"}
-            </p>
+            <p className="text-text-muted text-xs mb-5">Place feet on A4 paper, then capture top-down + side view</p>
             <div className="flex gap-3 w-full">
               <button onClick={openCamera}
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent hover:bg-accent-light text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/20 transition-all">

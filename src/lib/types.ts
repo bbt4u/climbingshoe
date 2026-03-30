@@ -3,8 +3,6 @@ export type ExperienceLevel = "beginner" | "intermediate" | "advanced" | "expert
 export type Aggressiveness = "flat" | "moderate" | "aggressive";
 export type FitProfile = "narrow" | "medium" | "wide" | "high-volume";
 export type FootShape = "egyptian" | "roman" | "greek" | "german" | "celtic";
-export type ScanMode = "quick" | "precision";
-
 export interface Shoe {
   id: string;
   name: string;
@@ -34,7 +32,6 @@ export interface FitAnswers {
 
 export interface FormData {
   photos: { front: string | null; side: string | null };
-  scanMode: ScanMode;
   sizeSystem: SizeSystem;
   streetSize: string;
   climbingSize: string;
@@ -57,5 +54,4 @@ export interface RecommendResponse {
   recommendations: Recommendation[];
   footAnalysis: string;
   footShape: FootShape;
-  scanMode: ScanMode;
 }

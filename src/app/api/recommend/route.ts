@@ -76,7 +76,6 @@ export async function POST(request: Request) {
       footAnalysis: parsed.footAnalysis,
       footShape,
       recommendations,
-      scanMode: body.scanMode || "quick",
     };
 
     return NextResponse.json(result);

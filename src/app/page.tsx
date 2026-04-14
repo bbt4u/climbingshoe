@@ -1,111 +1,138 @@
 "use client";
 
-import { useState } from "react";
-import StepIndicator from "@/components/StepIndicator";
-import PhotoUpload from "@/components/steps/PhotoUpload";
-import ShoeSize from "@/components/steps/ShoeSize";
-import FitQuestions from "@/components/steps/FitQuestions";
-import CurrentShoes from "@/components/steps/CurrentShoes";
-import Experience from "@/components/steps/Experience";
-import Results from "@/components/Results";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import type { FormData, RecommendResponse, SizeSystem, FitAnswers, ExperienceLevel } from "@/lib/types";
+import { useState, useEffect } from "react";
 
-const initialForm: FormData = {
-  photos: { front: null, side: null },
-  sizeSystem: "US",
-  streetSize: "",
-  climbingSize: "",
-  climbingBrand: "",
-  fitAnswers: { tightOnSides: "", sizeUpForWidth: "", heelSlips: "" },
-  currentShoes: [],
-  experience: "beginner",
-};
+type Experience = "" | "beginner" | "intermediate" | "advanced" | "expert";
 
-type Step = 0 | 1 | 2 | 3 | 4 | 5 | "loading" | "results";
+export default function Waitlist() {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [experience, setExperience] = useState<Experience>("");
+  const [instagram, setInstagram] = useState("");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [position, setPosition] = useState(0);
+  const [count, setCount] = useState(0);
 
-export default function Home() {
-  const [step, setStep] = useState<Step>(0);
-  const [form, setForm] = useState<FormData>(initialForm);
-  const [results, setResults] = useState<RecommendResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    fetch("/api/waitlist").then((r) => r.json()).then((d) => setCount(d.count)).catch(() => {});
+  }, []);
 
-  const handleSubmit = async () => {
-    setStep("loading");
-    setError(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setStatus("submitting");
     try {
-      const res = await fetch("/api/recommend", {
+      const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ email, name, experience, instagram }),
       });
-      if (!res.ok) throw new Error(await res.text() || "Something went wrong");
-      const data: RecommendResponse = await res.json();
-      setResults(data);
-      setStep("results");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      setStep(5);
+      const data = await res.json();
+      if (!res.ok) { setErrorMsg(data.error); setStatus("error"); return; }
+      setPosition(data.position);
+      setStatus("success");
+    } catch {
+      setErrorMsg("Something went wrong. Try again.");
+      setStatus("error");
     }
   };
 
-  const reset = () => { setForm(initialForm); setResults(null); setError(null); setStep(0); };
-
-  if (step === 0) {
+  if (status === "success") {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
-        <div className="text-center animate-fade-in-up max-w-lg">
-          <div className="inline-flex items-center gap-2 bg-accent/10 text-accent text-xs font-bold px-4 py-1.5 rounded-full mb-6 tracking-wider uppercase border border-accent/20">AI-Powered</div>
-          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-4">Boulder<span className="text-accent">Fit</span></h1>
-          <p className="text-text-secondary text-lg sm:text-xl mb-2">The beta for your perfect shoe.</p>
-          <p className="text-text-muted text-sm mb-10 max-w-sm mx-auto">Upload a photo of your feet and get personalized climbing shoe recommendations powered by AI.</p>
-          <button onClick={() => setStep(1)}
-            className="px-10 py-4 bg-accent hover:bg-accent-light text-white font-bold text-lg rounded-2xl shadow-lg shadow-accent/25 hover:shadow-accent/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
-            Find My Shoe
-          </button>
+        <div className="text-center animate-fade-in-up max-w-md">
+          <div className="w-16 h-16 rounded-full bg-teal/20 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-extrabold text-white mb-3">You&apos;re on the list!</h1>
+          {position > 0 && <p className="text-accent font-bold text-lg mb-2">#{position} in line</p>}
+          <p className="text-text-secondary text-sm mb-8">We&apos;ll email you when BoulderFit is ready. Get stoked.</p>
+          <div className="bg-surface-overlay/50 border border-surface-border rounded-xl p-5">
+            <p className="text-text-muted text-xs mb-3">Know someone who needs better-fitting shoes?</p>
+            <button onClick={() => navigator.share?.({ url: window.location.href, title: "BoulderFit — Find your perfect climbing shoe" }).catch(() => {})}
+              className="px-6 py-2.5 bg-accent/20 text-accent font-bold text-sm rounded-xl border border-accent/30 hover:bg-accent/30 transition-all">
+              Share with a climbing partner
+            </button>
+          </div>
         </div>
-        <footer className="fixed bottom-0 left-0 right-0 py-4 text-center"><p className="text-text-muted text-xs">Find the beta for your shoes</p></footer>
+        <footer className="fixed bottom-0 left-0 right-0 py-4 text-center">
+          <p className="text-text-muted text-xs">Find the beta for your shoes</p>
+        </footer>
       </main>
     );
   }
 
-  const stepNum = typeof step === "number" ? step : 0;
-
   return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-6 sm:py-10">
-      <button onClick={() => setStep(0)} className="mb-6 group">
-        <h1 className="text-2xl font-extrabold tracking-tight text-white group-hover:text-accent transition-colors">Boulder<span className="text-accent">Fit</span></h1>
-      </button>
-
-      <div className="w-full max-w-xl">
-        <div className="bg-surface/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-surface-border/50 p-5 sm:p-7">
-          {stepNum >= 1 && stepNum <= 5 && <StepIndicator current={stepNum} />}
-
-          {error && (
-            <div className="mb-5 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400 flex items-start gap-2">
-              <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-              {error}
-            </div>
-          )}
-
-          {step === 1 && <PhotoUpload photos={form.photos} onChange={(photos) => setForm({ ...form, photos })} onNext={() => setStep(2)} />}
-          {step === 2 && (
-            <ShoeSize sizeSystem={form.sizeSystem} streetSize={form.streetSize} climbingSize={form.climbingSize} climbingBrand={form.climbingBrand}
-              onChange={(d: { sizeSystem: SizeSystem; streetSize: string; climbingSize: string; climbingBrand: string }) => setForm({ ...form, ...d })}
-              onNext={() => setStep(3)} onBack={() => setStep(1)} />
-          )}
-          {step === 3 && <FitQuestions answers={form.fitAnswers} onChange={(fitAnswers: FitAnswers) => setForm({ ...form, fitAnswers })} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
-          {step === 4 && <CurrentShoes selected={form.currentShoes} onChange={(currentShoes: string[]) => setForm({ ...form, currentShoes })} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
-          {step === 5 && <Experience experience={form.experience} onChange={(experience: ExperienceLevel) => setForm({ ...form, experience })} onSubmit={handleSubmit} onBack={() => setStep(4)} />}
-          {step === "loading" && <LoadingSpinner />}
-          {step === "results" && results && <Results data={results} onReset={reset} />}
+    <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+      <div className="text-center animate-fade-in-up max-w-lg w-full">
+        <div className="inline-flex items-center gap-2 bg-accent/10 text-accent text-xs font-bold px-4 py-1.5 rounded-full mb-6 tracking-wider uppercase border border-accent/20">
+          Coming Soon
         </div>
-        <p className="text-center text-xs text-text-muted mt-6">
-          {step === "results" ? "Smear with confidence." : "Find the beta for your shoes"}
+        <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-4">
+          Boulder<span className="text-accent">Fit</span>
+        </h1>
+        <p className="text-text-secondary text-lg sm:text-xl mb-3">The beta for your perfect shoe.</p>
+        <p className="text-text-muted text-sm mb-8 max-w-sm mx-auto">
+          AI-powered climbing shoe recommendations. Scan your feet, find your fit.
         </p>
+
+        {/* Pain points */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8 max-w-md mx-auto text-left">
+          {[
+            "Wondering what climbing shoe to get next?",
+            "Been buying the same shoe every time?",
+            "Hear that air bubble when you drop off?",
+            "Failed at downsizing your shoes?",
+          ].map((q) => (
+            <div key={q} className="flex items-start gap-2 p-3 bg-surface-overlay/40 rounded-lg border border-surface-border/50">
+              <svg className="w-4 h-4 text-accent shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-text-secondary text-xs leading-relaxed">{q}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Signup form */}
+        <form onSubmit={handleSubmit} className="max-w-sm mx-auto space-y-3">
+          <input type="email" required placeholder="Your email *" value={email} onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 bg-surface-overlay border border-surface-border rounded-xl text-white text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all" />
+          <input type="text" placeholder="First name (optional)" value={name} onChange={(e) => setName(e.target.value)}
+            className="w-full px-4 py-3 bg-surface-overlay border border-surface-border rounded-xl text-white text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all" />
+          <select value={experience} onChange={(e) => setExperience(e.target.value as Experience)}
+            className="w-full px-4 py-3 bg-surface-overlay border border-surface-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+            style={{ color: experience ? "white" : undefined }}>
+            <option value="">Climbing experience (optional)</option>
+            <option value="beginner">Beginner — just started</option>
+            <option value="intermediate">Intermediate — climbing regularly</option>
+            <option value="advanced">Advanced — projecting hard</option>
+            <option value="expert">Expert — been at it for years</option>
+          </select>
+          <input type="text" placeholder="Instagram handle (optional)" value={instagram} onChange={(e) => setInstagram(e.target.value)}
+            className="w-full px-4 py-3 bg-surface-overlay border border-surface-border rounded-xl text-white text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all" />
+
+          {status === "error" && (
+            <p className="text-red-400 text-xs font-semibold">{errorMsg}</p>
+          )}
+
+          <button type="submit" disabled={status === "submitting" || !email}
+            className="w-full py-3.5 bg-accent hover:bg-accent-light text-white font-bold text-sm rounded-xl shadow-lg shadow-accent/25 hover:shadow-accent/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+            {status === "submitting" ? "Joining..." : "Join the Waitlist"}
+          </button>
+        </form>
+
+        {count > 0 && (
+          <p className="text-text-muted text-xs mt-4">
+            {count} climber{count !== 1 ? "s" : ""} already waiting
+          </p>
+        )}
       </div>
+      <footer className="fixed bottom-0 left-0 right-0 py-4 text-center">
+        <p className="text-text-muted text-xs">Find the beta for your shoes</p>
+      </footer>
     </main>
   );
 }

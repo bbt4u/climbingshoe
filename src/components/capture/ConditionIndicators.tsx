@@ -36,8 +36,8 @@ export default function ConditionIndicators({ angleOk, lightingOk, angleSupporte
         <Badge ok={true} label="Manual mode" />
       )}
       <Badge ok={lightingOk} label={lightingOk ? "Lighting OK" : "Too dark"} />
-      {showA4 && (
-        <Badge ok={!!a4Detected} label={a4Detected ? "A4 detected" : "No A4 paper"} />
+      {showA4 && a4Detected && (
+        <Badge ok={true} label="A4 detected" />
       )}
     </div>
   );

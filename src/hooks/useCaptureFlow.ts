@@ -71,6 +71,8 @@ function reducer(state: CaptureState, action: CaptureAction): CaptureState {
 
 export function useCaptureFlow() {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const canCapture = state.angleOk && state.lightingOk;
+  // Always allow capture — conditions shown as hints, not blockers.
+  // Users know their own setup better than our sensors do.
+  const canCapture = state.phase === "capture-top" || state.phase === "capture-side";
   return { state, dispatch, canCapture };
 }

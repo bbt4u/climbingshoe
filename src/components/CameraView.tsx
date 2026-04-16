@@ -24,10 +24,10 @@ export default function CameraView({ stream, onComplete, onClose }: Props) {
   const orientation = useDeviceOrientation();
   const isLive = state.phase === "capture-top" || state.phase === "capture-side";
   const { isBright } = useBrightnessCheck(videoRef, isLive);
+  // A4 detection is informational only — not required for capture
   const a4 = useA4Detection(videoRef, isLive && state.phase === "capture-top");
 
-  // Attach stream to video — re-run when phase changes so the video
-  // element (which doesn't exist during guidance) gets the stream
+  // Attach stream to video — re-run when phase changes so the video element gets the stream
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -35,18 +35,16 @@ export default function CameraView({ stream, onComplete, onClose }: Props) {
     video.play().catch(() => {});
   }, [stream, state.phase]);
 
-  // Sync conditions — A4 required for top-down, ±5° angle tolerance
+  // Track conditions for display — ±15° angle tolerance (was ±5°, too strict)
   useEffect(() => {
     if (!isLive) return;
     const angleSupported = orientation.permission === "granted";
     const isTopDown = state.phase === "capture-top";
     const angleOk = !angleSupported ? true
-      : isTopDown ? isTopDownAngle(orientation.beta, 5)
-      : isSideAngle(orientation.beta);
-
-    const lightingOk = isTopDown ? isBright && a4.detected && a4.ratioOk : isBright;
-    dispatch({ type: "UPDATE_CONDITIONS", angleOk, lightingOk });
-  }, [isLive, orientation.beta, orientation.permission, isBright, state.phase, a4, dispatch]);
+      : isTopDown ? isTopDownAngle(orientation.beta, 15)
+      : isSideAngle(orientation.beta, 20);
+    dispatch({ type: "UPDATE_CONDITIONS", angleOk, lightingOk: isBright });
+  }, [isLive, orientation.beta, orientation.permission, isBright, state.phase, dispatch]);
 
   useEffect(() => {
     if (state.phase === "complete" && state.topPhoto && state.sidePhoto) {
@@ -89,10 +87,7 @@ export default function CameraView({ stream, onComplete, onClose }: Props) {
 
   const mode = state.phase === "capture-top" ? "top" : "side";
   const angleSupported = orientation.permission === "granted";
-
-  let hint: string | undefined;
-  if (state.phase === "capture-side") hint = "Now capture a side view of one foot";
-  else if (!a4.detected || !a4.ratioOk) hint = a4.message;
+  const hint = state.phase === "capture-side" ? "Now capture a side view of one foot" : undefined;
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">

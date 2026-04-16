@@ -48,7 +48,7 @@ export default function PhotoUpload({ photos, onChange, onNext }: Props) {
   return (
     <div className="animate-fade-in-up">
       <h2 className="text-lg font-bold text-white mb-1">Photos of Your Feet</h2>
-      <p className="text-text-secondary text-sm mb-5">Place feet on A4 paper, then capture a top-down and side view.</p>
+      <p className="text-text-secondary text-sm mb-5">A top-down and a side view. A4 paper underneath helps accuracy but isn&apos;t required.</p>
 
       {cameraStream && (
         <CameraView stream={cameraStream} onComplete={handleCameraComplete}
@@ -83,7 +83,7 @@ export default function PhotoUpload({ photos, onChange, onNext }: Props) {
               </svg>
             </div>
             <p className="text-text-secondary text-sm font-semibold mb-1">Two photos needed</p>
-            <p className="text-text-muted text-xs mb-5">Place feet on A4 paper, then capture top-down + side view</p>
+            <p className="text-text-muted text-xs mb-5">Top-down view + side view of your feet</p>
             <div className="flex gap-3 w-full">
               <button onClick={openCamera}
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent hover:bg-accent-light text-white rounded-xl text-sm font-bold shadow-lg shadow-accent/20 transition-all">

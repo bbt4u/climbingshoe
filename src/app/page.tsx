@@ -124,9 +124,10 @@ export default function Waitlist() {
           </button>
         </form>
 
-        {count > 0 && (
+        {/* Only show counter once we have real momentum — prevents "1 climber waiting" */}
+        {count >= 25 && (
           <p className="text-text-muted text-xs mt-4">
-            {count} climber{count !== 1 ? "s" : ""} already waiting
+            {count} climbers already waiting
           </p>
         )}
       </div>
